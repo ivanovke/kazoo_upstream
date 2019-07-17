@@ -56,6 +56,12 @@
         ,remove_wrong_assigned_from_single_accountdb/1
         ]).
 
+-export([destructively_remove_from_number_dbs_if_not_in_accountdb/0
+        ,destructively_remove_from_single_numdb_if_not_in_accountdb/1
+        ]).
+-export([destructively_remove_from_account_db_if_not_in_numdb/0
+        ,destructively_remove_from_single_account_db_if_not_in_numdb/1
+        ]).
 
 -export([fix_account_db_numbers/1]).
 
@@ -629,14 +635,161 @@ do_remove_wrong_assigned_from_account(#{todo := []}=State, _) ->
     ?SUP_LOG_DEBUG("     no wrong assignment to remove"),
     State;
 do_remove_wrong_assigned_from_account(#{todo := JObjs}=State, AccountDb) ->
-    ?SUP_LOG_DEBUG("     ~b wrong assignments to remove", [length(JObjs)]),
     AccountId = kz_util:format_account_id(AccountDb),
     ToRemove = [kz_doc:id(JObj)
                 || JObj <- JObjs,
                    kz_json:get_value(<<"key">>, JObj) =/= AccountId
                ],
     _ = kz_datamgr:del_docs(AccountDb, ToRemove),
+    ?SUP_LOG_DEBUG("     ~b wrong assignments to remove", [length(ToRemove)]),
     State#{todo => []}.
+
+%%------------------------------------------------------------------------------
+%% @doc
+%% @end
+%%------------------------------------------------------------------------------
+-spec destructively_remove_from_number_dbs_if_not_in_accountdb() -> 'ok'.
+destructively_remove_from_number_dbs_if_not_in_accountdb() ->
+    destructively_remove_from_number_dbs_if_not_in_accountdb(knm_util:get_all_number_dbs()).
+
+-spec destructively_remove_from_number_dbs_if_not_in_accountdb(kz_term:ne_binaries()) -> 'ok'.
+destructively_remove_from_number_dbs_if_not_in_accountdb(NumberDbs) ->
+    ?SUP_LOG_DEBUG("::: start destructively removing numbers from ~b number dbs if they are not in account db"
+                  ,[length(NumberDbs)]
+                  ),
+    State = maps:merge(loop_dbs_init()
+                      ,#{dbs => NumberDbs}
+                      ),
+    loop_dbs(State, fun loop_destructively_remove_from_numbdb/2).
+
+-spec destructively_remove_from_single_numdb_if_not_in_accountdb(kz_term:ne_binary()) -> 'ok'.
+destructively_remove_from_single_numdb_if_not_in_accountdb(NumberDb) ->
+    destructively_remove_from_single_numdb_if_not_in_accountdb([NumberDb]).
+
+%% @private
+-spec loop_destructively_remove_from_numbdb(loop_state(), kz_term:ne_binary()) -> loop_state().
+loop_destructively_remove_from_numbdb(State, NumberDb) ->
+    View = <<"numbers/assigned_to">>,
+    ViewOptions = [],
+    Funs = [fun split_by_list_assigned_and_app/2
+           ,fun do_destructively_remove_from_numbdb/2
+           ],
+    get_results_loop(State, NumberDb, View, ViewOptions, Funs).
+
+%% @private
+-spec do_destructively_remove_from_numbdb(loop_state(), kz_term:ne_binary()) -> loop_state().
+do_destructively_remove_from_numbdb(#{todo := []}=State, _) ->
+    ?SUP_LOG_DEBUG("     nothing to remove"),
+    State;
+do_destructively_remove_from_numbdb(#{todo := [{AccountDb, JObjs} | Rest]
+                                     ,ko := KO
+                                     }=State, NumberDb) ->
+    %% TODO: remove `include_docs' when bulk rev lookup in {@link kzs_doc:del_docs/3} is fixed
+    case kz_datamgr:all_docs(AccountDb, [{'keys', [kz_doc:id(J) || J <- JObjs]}, 'include_docs']) of
+        {'ok', AccountNums} ->
+            ToRemove = [kz_json:get_value(<<"doc">>, JObj)
+                        || JObj <- AccountNums,
+                           kz_json:get_value(<<"error">>, JObj) =:= <<"not_found">>
+                       ],
+            ?SUP_LOG_DEBUG("     destructively removing ~b", [length(ToRemove)]),
+            _ = kz_datamgr:del_docs(NumberDb, ToRemove),
+            do_destructively_remove_from_numbdb(State#{todo => Rest}, NumberDb);
+        {'error', Reason} ->
+            ?SUP_LOG_DEBUG("     failed to get numbers from account ~s: ~100p", [AccountDb, Reason]),
+            Error = to_binary_data_error(Reason),
+            DbKO = maps:get(AccountDb, KO, #{}),
+            DbFailed = maps:get(failed, DbKO, #{}),
+            NewFailed = merge_error_num_ids(<<"open_doc-",Error/binary>>, [kz_doc:id(J) || J <- JObjs], DbFailed),
+            do_destructively_remove_from_numbdb(State#{ko => KO#{AccountDb => add_failed_to_db_ko(DbKO, NewFailed)}
+                                                      ,todo => Rest
+                                                      }
+                                               ,NumberDb
+                                               )
+    end.
+
+%%------------------------------------------------------------------------------
+%% @doc
+%% @end
+%%------------------------------------------------------------------------------
+-spec destructively_remove_from_account_db_if_not_in_numdb() -> 'ok'.
+destructively_remove_from_account_db_if_not_in_numdb() ->
+    destructively_remove_from_account_db_if_not_in_numdb(kapps_util:get_all_accounts()).
+
+-spec destructively_remove_from_account_db_if_not_in_numdb(kz_term:ne_binaries()) -> 'ok'.
+destructively_remove_from_account_db_if_not_in_numdb(AccountDbs) ->
+    ?SUP_LOG_DEBUG("::: start destructively removing numbers from ~b account dbs if they are not in number dbs"
+                  ,[length(AccountDbs)]
+                  ),
+    State = maps:merge(loop_dbs_init()
+                      ,#{dbs => AccountDbs}
+                      ),
+    loop_dbs(State, fun loop_destructively_remove_from_accountdb/2).
+
+-spec destructively_remove_from_single_account_db_if_not_in_numdb(kz_term:ne_binary()) -> 'ok'.
+destructively_remove_from_single_account_db_if_not_in_numdb(AccountDb) ->
+    destructively_remove_from_account_db_if_not_in_numdb([AccountDb]).
+
+%% @private
+-spec loop_destructively_remove_from_accountdb(loop_state(), kz_term:ne_binary()) -> loop_state().
+loop_destructively_remove_from_accountdb(State, AccountDb) ->
+    View = <<"numbers/list_by_number">>,
+    ViewOptions = [],
+    Funs = [fun split_docs_by_number_dbs/2
+           ,fun do_destructively_remove_from_accountdb/2
+           ],
+    get_results_loop(State, AccountDb, View, ViewOptions, Funs).
+
+%% @private
+-spec do_destructively_remove_from_accountdb(loop_state(), kz_term:ne_binary()) -> loop_state().
+do_destructively_remove_from_accountdb(#{todo := []}=State, _) ->
+    ?SUP_LOG_DEBUG("     nothing to remove"),
+    State;
+do_destructively_remove_from_accountdb(#{todo := [{NumberDb, JObjs} | Rest]
+                                        ,ko := KO
+                                        }=State, AccountDb) ->
+    case kz_datamgr:all_docs(NumberDb, [{'keys', [kz_doc:id(J) || J <- JObjs]}]) of
+        {'ok', Nums} ->
+            ToRemoveId = [kz_json:get_value(<<"key">>, JObj)
+                          || JObj <- Nums,
+                             kz_json:get_value(<<"error">>, JObj) =:= <<"not_found">>
+                             orelse kz_json:is_true([<<"value">>, <<"deleted">>], JObj)
+                         ],
+            case kz_datamgr:all_docs(AccountDb, [{'keys', ToRemoveId}]) of
+                {'ok', []} ->
+                    do_destructively_remove_from_accountdb(State#{todo => Rest}, AccountDb);
+                {'ok', ToRemove} ->
+                    ?SUP_LOG_DEBUG("     destructively removing ~b", [length(ToRemove)]),
+                    _ = kz_datamgr:del_docs(AccountDb, [kz_json:from_list([{<<"_id">>, kz_json:get_value(<<"key">>, J)}
+                                                                          ,{<<"_rev">>, kz_json:get_value([<<"value">>, <<"rev">>], J)}
+                                                                          ])
+                                                        || J <- ToRemove
+                                                       ]
+                                           ),
+                    do_destructively_remove_from_accountdb(State#{todo => Rest}, AccountDb);
+                {'error', Reason} ->
+                    ?SUP_LOG_DEBUG("     failed to remove ~b numbers from account db: ~100p", [length(ToRemoveId), Reason]),
+                    Error = to_binary_data_error(Reason),
+                    DbKO = maps:get(AccountDb, KO, #{}),
+                    DbFailed = maps:get(failed, DbKO, #{}),
+                    NewFailed = merge_error_num_ids(<<"del_doc-",Error/binary>>, [kz_doc:id(J) || J <- JObjs], DbFailed),
+                    do_destructively_remove_from_accountdb(State#{ko => KO#{AccountDb => add_failed_to_db_ko(DbKO, NewFailed)}
+                                                                 ,todo => Rest
+                                                                 }
+                                                          ,AccountDb
+                                                          )
+            end;
+        {'error', Reason} ->
+            ?SUP_LOG_DEBUG("     failed to get numbers from ~s: ~100p", [NumberDb, Reason]),
+            Error = to_binary_data_error(Reason),
+            DbKO = maps:get(NumberDb, KO, #{}),
+            DbFailed = maps:get(failed, DbKO, #{}),
+            NewFailed = merge_error_num_ids(<<"open_doc-",Error/binary>>, [kz_doc:id(J) || J <- JObjs], DbFailed),
+            do_destructively_remove_from_accountdb(State#{ko => KO#{NumberDb => add_failed_to_db_ko(DbKO, NewFailed)}
+                                                         ,todo => Rest
+                                                         }
+                                                  ,AccountDb
+                                                  )
+    end.
 
 %%------------------------------------------------------------------------------
 %% @private
