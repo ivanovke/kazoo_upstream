@@ -179,7 +179,7 @@ create_alert(Response, JObj, Type) ->
             ,{<<"port_id">>, kz_doc:id(JObj)}
             ,{<<"phone_numbers">>, kz_json:get_keys(kzd_port_requests:numbers(JObj))}
             ,{<<"account_id">>, kz_doc:account_id(JObj)}
-            ,{<<"port_state">>, kz_json:get_ne_binary_value(?PORT_PVT_STATE, JObj)}
+            ,{<<"port_state">>, kzd_port_requests:pvt_port_state(JObj)}
              | Response
             ],
     kz_notify:detailed_alert(Subject, Msg, Props, []).

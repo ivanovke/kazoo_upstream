@@ -7,7 +7,7 @@
 -module(knm_telnyx_tests).
 
 -include_lib("eunit/include/eunit.hrl").
--include("knm.hrl").
+-include("../src/knm.hrl").
 
 api_test_() ->
     Options = [{'account_id', ?RESELLER_ACCOUNT_ID}

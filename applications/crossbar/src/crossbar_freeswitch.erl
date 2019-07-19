@@ -298,8 +298,8 @@ maybe_export_numbers(Db, [Number|Numbers]) ->
     _ = case kz_datamgr:open_doc(Db, Number) of
             {'ok', JObj} ->
                 maybe_export_number(Number
-                                   ,kz_json:get_first_defined([?PVT_STATE, ?PVT_STATE_LEGACY], JObj)
-                                   ,kz_json:get_value(?PVT_ASSIGNED_TO, JObj)
+                                   ,kzd_phone_numbers:pvt_state(JObj)
+                                   ,kzd_phone_numbers:pvt_assigned_to(JObj)
                                    );
             {'error', _R} ->
                 lager:debug("error fetching number ~s from ~d: ~p", [Number, Db, _R])

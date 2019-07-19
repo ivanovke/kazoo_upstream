@@ -284,7 +284,7 @@ handle_bulk_change(Db, JObjs, PNs, T, ErrorF) ->
                         knm_numbers:collection().
 retry_save(Db, PNsMap, ErrorF, Num, T) ->
     PN = maps:get(Num, PNsMap),
-    Update = kz_json:to_proplist(kz_json:delete_key(<<"_rev">>, to_json(PN))),
+    Update = kz_json:to_proplist(kz_doc:delete_revision(to_json(PN))),
     case kz_datamgr:update_doc(Db, Num, [{'update', Update}
                                         ,{'ensure_saved', 'true'}
                                         ])
@@ -627,31 +627,28 @@ to_public_json(PN) ->
 %%------------------------------------------------------------------------------
 -spec to_json(knm_phone_number()) -> kz_json:object().
 to_json(PN=#knm_phone_number{doc=JObj}) ->
-    kz_json:from_list(
-      [{<<"_id">>, number(PN)}
-      ,{?PVT_DB_NAME, number_db(PN)}
-      ,{?PVT_STATE, state(PN)}
-      ,{?PVT_PORTED_IN, ported_in(PN)}
-      ,{?PVT_MODULE_NAME, module_name(PN)}
-      ,{?PVT_MODIFIED, modified(PN)}
-      ,{?PVT_CREATED, created(PN)}
-      ,{?PVT_TYPE, <<"number">>}
-       | kz_json:to_proplist(sanitize_public_fields(JObj))
-      ]
-      ++
-          props:filter_empty(
-            [{<<"_rev">>, rev(PN)}
-            ,{?PVT_ASSIGNED_TO, assigned_to(PN)}
-            ,{?PVT_PREVIOUSLY_ASSIGNED_TO, prev_assigned_to(PN)}
-            ,{?PVT_USED_BY, used_by(PN)}
-            ,{?PVT_FEATURES, features(PN)}
-            ,{?PVT_FEATURES_ALLOWED, features_allowed(PN)}
-            ,{?PVT_FEATURES_DENIED, features_denied(PN)}
-            ,{?PVT_RESERVE_HISTORY, reserve_history(PN)}
-            ,{?PVT_CARRIER_DATA, carrier_data(PN)}
-            ,{?PVT_REGION, region(PN)}
-            ])
-     ).
+    Setters = [{fun kz_doc:set_id/2, number(PN)}
+              ,{fun kz_doc:set_created/2, created(PN)}
+              ,{fun kz_doc:modified/2, modified(PN)}
+              ,{fun kz_doc:set_type/2, kzd_phone_numbers:type()}
+              ,{fun kzd_phone_numbers:set_pvt_db_name/2, number_db(PN)}
+              ,{fun kzd_phone_numbers:set_pvt_module_name/2, module_name(PN)}
+              ,{fun kzd_phone_numbers:set_pvt_ported_in/2, ported_in(PN)}
+              ,{fun kzd_phone_numbers:set_pvt_state/2, state(PN)}
+               | props:filter_empty(
+                   [{fun kz_doc:set_revision/2, rev(PN)}
+                   ,{fun kzd_phone_numbers:set_pvt_assigned_to/2, assigned_to(PN)}
+                   ,{fun kzd_phone_numbers:set_pvt_carrier_data/2, carrier_data(PN)}
+                   ,{fun kzd_phone_numbers:set_pvt_features/2, features(PN)}
+                   ,{fun kzd_phone_numbers:set_pvt_features_allowed/2, features_allowed(PN)}
+                   ,{fun kzd_phone_numbers:set_pvt_features_denied/2, features_denied(PN)}
+                   ,{fun kzd_phone_numbers:set_pvt_previously_assigned_to/2, prev_assigned_to(PN)}
+                   ,{fun kzd_phone_numbers:set_pvt_region/2, region(PN)}
+                   ,{fun kzd_phone_numbers:set_pvt_reserve_history/2, reserve_history(PN)}
+                   ,{fun kzd_phone_numbers:set_pvt_used_by/2, used_by(PN)}
+                   ])
+              ],
+    kz_doc:setters(sanitize_public_fields(JObj), Setters).
 
 %%------------------------------------------------------------------------------
 %% @doc
@@ -664,27 +661,27 @@ from_json(JObj) ->
                 %% Order matters
                ,[{fun set_number/2, knm_converters:normalize(kz_doc:id(JObj))}
                 ,{fun set_assigned_to/3
-                 ,kz_json:get_value(?PVT_ASSIGNED_TO, JObj)
-                 ,kz_json:get_value(?PVT_USED_BY, JObj)
+                 ,kzd_phone_numbers:pvt_assigned_to(JObj)
+                 ,kzd_phone_numbers:pvt_used_by(JObj)
                  }
-                ,{fun set_prev_assigned_to/2, kz_json:get_value(?PVT_PREVIOUSLY_ASSIGNED_TO, JObj)}
-                ,{fun set_reserve_history/2, kz_json:get_value(?PVT_RESERVE_HISTORY, JObj, ?DEFAULT_RESERVE_HISTORY)}
+                ,{fun set_prev_assigned_to/2, kzd_phone_numbers:pvt_previously_assigned_to(JObj)}
+                ,{fun set_reserve_history/2, kzd_phone_numbers:pvt_reserve_history(JObj, ?DEFAULT_RESERVE_HISTORY)}
 
                 ,{fun set_modified/2, kz_doc:modified(JObj)}
                 ,{fun set_created/2, kz_doc:created(JObj)}
 
                 ,{fun set_doc/2, sanitize_public_fields(JObj)}
                 ,{fun set_current_doc/2, JObj}
-                ,{fun maybe_migrate_features/2, kz_json:get_ne_value(?PVT_FEATURES, JObj)}
+                ,{fun maybe_migrate_features/2, kzd_phone_numbers:pvt_features(JObj)}
 
-                ,{fun set_state/2, kz_json:get_first_defined([?PVT_STATE, ?PVT_STATE_LEGACY], JObj)}
-                ,{fun set_ported_in/2, kz_json:is_true(?PVT_PORTED_IN, JObj, ?DEFAULT_PORTED_IN)}
-                ,{fun set_module_name/2, kz_json:get_value(?PVT_MODULE_NAME, JObj, ?DEFAULT_MODULE_NAME)}
-                ,{fun set_carrier_data/2, kz_json:get_value(?PVT_CARRIER_DATA, JObj, ?DEFAULT_CARRIER_DATA)}
-                ,{fun set_region/2, kz_json:get_value(?PVT_REGION, JObj)}
-                ,{fun set_auth_by/2, kz_json:get_value(?PVT_AUTH_BY, JObj)}
-                ,{fun set_features_allowed/2, kz_json:get_list_value(?PVT_FEATURES_ALLOWED, JObj, ?DEFAULT_FEATURES_ALLOWED)}
-                ,{fun set_features_denied/2, kz_json:get_list_value(?PVT_FEATURES_DENIED, JObj, ?DEFAULT_FEATURES_DENIED)}
+                ,{fun set_state/2, kzd_phone_numbers:pvt_state(JObj)}
+                ,{fun set_ported_in/2, kzd_phone_numbers:pvt_ported_in(JObj, ?DEFAULT_PORTED_IN)}
+                ,{fun set_module_name/2, kzd_phone_numbers:pvt_module_name(JObj, ?DEFAULT_MODULE_NAME)}
+                ,{fun set_carrier_data/2, kzd_phone_numbers:pvt_carrier_data(JObj, ?DEFAULT_CARRIER_DATA)}
+                ,{fun set_region/2, kzd_phone_numbers:pvt_region(JObj)}
+                ,{fun set_auth_by/2, kzd_phone_numbers:pvt_authorizing_account(JObj)}
+                ,{fun set_features_allowed/2, kzd_phone_numbers:pvt_features_allowed(JObj, ?DEFAULT_FEATURES_ALLOWED)}
+                ,{fun set_features_denied/2, kzd_phone_numbers:pvt_features_denied(JObj, ?DEFAULT_FEATURES_DENIED)}
 
                 ,fun ensure_features_defined/1
                 ,{fun ensure_pvt_state_legacy_undefined/2, kz_json:get_value(?PVT_STATE_LEGACY, JObj)}
@@ -716,7 +713,7 @@ ensure_features_defined(PN) -> PN.
 
 ensure_pvt_state_legacy_undefined(PN, 'undefined') -> PN;
 ensure_pvt_state_legacy_undefined(PN, _State) ->
-    lager:debug("~s was set to ~p, moving to ~s", [?PVT_STATE_LEGACY, _State, ?PVT_STATE]),
+    lager:debug("~s was set to ~p, moving to ~s", [?PVT_STATE_LEGACY, _State, kzd_phone_numbers:pvt_state_path()]),
     ?DIRTY(PN).
 
 %% Handle moving away from provider-specific E911

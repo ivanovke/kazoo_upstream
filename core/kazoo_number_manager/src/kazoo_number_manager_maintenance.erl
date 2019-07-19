@@ -759,8 +759,8 @@ do_destructively_remove_from_accountdb(#{todo := [{NumberDb, JObjs} | Rest]
                     do_destructively_remove_from_accountdb(State#{todo => Rest}, AccountDb);
                 {'ok', ToRemove} ->
                     ?SUP_LOG_DEBUG("     destructively removing ~b", [length(ToRemove)]),
-                    _ = kz_datamgr:del_docs(AccountDb, [kz_json:from_list([{<<"_id">>, kz_json:get_value(<<"key">>, J)}
-                                                                          ,{<<"_rev">>, kz_json:get_value([<<"value">>, <<"rev">>], J)}
+                    _ = kz_datamgr:del_docs(AccountDb, [kz_json:from_list([{kz_doc:path_id(), kz_json:get_value(<<"key">>, J)}
+                                                                          ,{kz_doc:path_revision(), kz_json:get_value([<<"value">>, <<"rev">>], J)}
                                                                           ])
                                                         || J <- ToRemove
                                                        ]
@@ -954,7 +954,7 @@ split_docs_by_assigned_to(#{todo := Todos}=State, _Db) ->
     ?SUP_LOG_DEBUG("     grouping ~b docs by assigned_to", [length(Todos)]),
     F = fun (JObj, M) ->
                 AccountDb = kz_util:format_account_db(
-                              kz_json:get_value(<<"pvt_assigned_to">>, JObj)
+                              kzd_phone_numbers:pvt_assigned_to(JObj)
                              ),
                 M#{AccountDb => [JObj | maps:get(AccountDb, M, [])]}
         end,
@@ -1387,11 +1387,11 @@ maybe_fix_used_by(Number, _YouAreWrongSir, UsedByApp, ToFix) ->
 
 -spec add_used_by_fun(kz_term:ne_binary()) -> fun((kz_json:object()) -> kz_json:object()).
 add_used_by_fun(UsedBy) ->
-    fun(JObj) -> kz_json:set_value(<<"pvt_used_by">>, UsedBy, JObj) end.
+    fun(JObj) -> kzd_phone_numbers:set_pvt_used_by(JObj, UsedBy) end.
 
 -spec delete_used_by_fun() -> fun((kz_json:object()) -> kz_json:object()).
 delete_used_by_fun() ->
-    fun(JObj) -> kz_json:delete_key(<<"pvt_used_by">>, JObj) end.
+    fun(JObj) -> kz_json:delete_key(kzd_phone_numbers:pvt_used_by_path(), JObj) end.
 
 %%------------------------------------------------------------------------------
 %% @doc
@@ -1669,7 +1669,7 @@ purge_number_db(NumberDb, State) ->
             io:format("removing ~p numbers in state '~s' from ~s~n", [length(Numbers), State, NumberDb]),
             JObjs = [JObj || Number <- Numbers,
                              JObj <- [kz_json:get_value(<<"doc">>, Number)],
-                             State =:= kz_json:get_value(?PVT_STATE, JObj)
+                             State =:= kzd_phone_numbers:pvt_state(JObj)
                     ],
             _ = kz_datamgr:del_docs(NumberDb, JObjs),
             purge_number_db(NumberDb, State)
