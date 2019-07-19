@@ -403,14 +403,9 @@ patch(Context, Id, NewState=?PORT_COMPLETED) ->
 patch(Context, Id, NewState=?PORT_REJECTED) ->
     save_then_maybe_notify(Context, Id, NewState);
 patch(Context, Id, NewState=?PORT_CANCELED) ->
-    case phonebook:maybe_cancel_port_in(Context) of
-        {'ok', _} ->
-            save_then_maybe_notify(Context, Id, NewState);
-        {'error', {Code, Response}} ->
-            handle_phonebook_error(Context, Code, Response);
-        {'error', Message} ->
-            cb_context:add_system_error('datastore_fault', Message, Context)
-    end.
+    %% TODO: implement support for this in phonebook
+    %% _ = phonebook:maybe_cancel_port_in(Context),
+    save_then_maybe_notify(Context, Id, NewState).
 
 %%------------------------------------------------------------------------------
 %% @doc If the HTTP verb is POST, execute the actual action, usually a db save
@@ -441,14 +436,9 @@ post(Context, Id, ?PORT_ATTACHMENT, AttachmentId) ->
 %%------------------------------------------------------------------------------
 -spec delete(cb_context:context(), path_token()) -> cb_context:context().
 delete(Context, _Id) ->
-    case phonebook:maybe_cancel_port_in(Context) of
-        {'ok', _} ->
-            crossbar_doc:delete(Context);
-        {'error', {Code, Response}} ->
-            handle_phonebook_error(Context, Code, Response);
-        {'error', Message} ->
-            cb_context:add_system_error('datastore_fault', Message, Context)
-    end.
+    %% TODO: implement support for this in phonebook
+    %% _ = phonebook:maybe_cancel_port_in(Context),
+    crossbar_doc:delete(Context).
 
 -spec delete(cb_context:context(), path_token(), path_token(), path_token()) ->
                     cb_context:context().

@@ -39,16 +39,12 @@ maybe_add_comment(Context, Comment) ->
         'false' -> {'ok', 'disabled'}
     end.
 
--spec maybe_cancel_port_in(cb_context:context()) -> {'ok', kz_json:object() | 'disabled'} | {'error', kz_term:ne_binary() | {integer(), kz_json:object()}}.
-maybe_cancel_port_in(Context) ->
-    case should_send_to_phonebook(Context) of
-        'true' ->
-            %%TODO: implement support for this in phonebook
-            %% cancel_port_in(cb_context:doc(Context), cb_context:auth_token(Context));
-            %%UNTIL THEN: just return disabled
-            {'ok', 'disabled'};
-        'false' -> {'ok', 'disabled'}
-    end.
+-spec maybe_cancel_port_in(cb_context:context()) -> {'ok', 'disabled'}.
+maybe_cancel_port_in(_Context) ->
+    %% TODO: implement support for this in phonebook
+    %% cancel_port_in(cb_context:doc(Context), cb_context:auth_token(Context));
+    %%UNTIL THEN: just return disabled
+    {'ok', 'disabled'}.
 
 %%------------------------------------------------------------------------------
 %% @doc

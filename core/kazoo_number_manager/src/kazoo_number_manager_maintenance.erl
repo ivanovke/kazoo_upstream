@@ -752,7 +752,7 @@ do_destructively_remove_from_accountdb(#{todo := [{NumberDb, JObjs} | Rest]
             ToRemoveId = [kz_json:get_value(<<"key">>, JObj)
                           || JObj <- Nums,
                              kz_json:get_value(<<"error">>, JObj) =:= <<"not_found">>
-                             orelse kz_json:is_true([<<"value">>, <<"deleted">>], JObj)
+                                 orelse kz_json:is_true([<<"value">>, <<"deleted">>], JObj)
                          ],
             case kz_datamgr:all_docs(AccountDb, [{'keys', ToRemoveId}]) of
                 {'ok', []} ->

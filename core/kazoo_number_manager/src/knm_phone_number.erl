@@ -629,7 +629,7 @@ to_public_json(PN) ->
 to_json(PN=#knm_phone_number{doc=JObj}) ->
     Setters = [{fun kz_doc:set_id/2, number(PN)}
               ,{fun kz_doc:set_created/2, created(PN)}
-              ,{fun kz_doc:modified/2, modified(PN)}
+              ,{fun kz_doc:set_modified/2, modified(PN)}
               ,{fun kz_doc:set_type/2, kzd_phone_numbers:type()}
               ,{fun kzd_phone_numbers:set_pvt_db_name/2, number_db(PN)}
               ,{fun kzd_phone_numbers:set_pvt_module_name/2, module_name(PN)}

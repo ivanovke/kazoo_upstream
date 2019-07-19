@@ -248,13 +248,13 @@
                                 ])}
           ,{kz_doc:path_modified(), 63565911000}
           ,{kzd_phone_numbers:pvt_features_path(), kz_json:from_list_recursive(
-                             [{?FEATURE_CNAM_INBOUND, [{?CNAM_INBOUND_LOOKUP, true}]}
-                             ,{?FEATURE_CNAM_OUTBOUND, [{?CNAM_DISPLAY_NAME, <<"Rose Bud">>}]}
-                             ,{?FEATURE_PREPEND, [{?PREPEND_ENABLED, true}
-                                                 ,{?PREPEND_NAME, <<"Citizen">>}
-                                                 ,{?PREPEND_NUMBER, <<"75657869">>}
-                                                 ]}
-                             ])}
+                                                     [{?FEATURE_CNAM_INBOUND, [{?CNAM_INBOUND_LOOKUP, true}]}
+                                                     ,{?FEATURE_CNAM_OUTBOUND, [{?CNAM_DISPLAY_NAME, <<"Rose Bud">>}]}
+                                                     ,{?FEATURE_PREPEND, [{?PREPEND_ENABLED, true}
+                                                                         ,{?PREPEND_NAME, <<"Citizen">>}
+                                                                         ,{?PREPEND_NUMBER, <<"75657869">>}
+                                                                         ]}
+                                                     ])}
           ,{kzd_phone_numbers:pvt_assigned_to_path(), ?RESELLER_ACCOUNT_ID}
           ,{kzd_phone_numbers:pvt_reserve_history_path(), [?RESELLER_ACCOUNT_ID]}
           ,{kzd_phone_numbers:pvt_module_name_path(), <<"knm_vitelity">>}
