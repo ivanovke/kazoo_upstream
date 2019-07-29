@@ -250,78 +250,6 @@ bulk_fetch(T0, JObjs) ->
         end,
     lists:foldl(F, T0, JObjs).
 
-%% @doc Works the same with the output of save_docs and del_docs
-%% @end
-handle_bulk_change(Db, JObjs, PNsMap, T0, ErrorF, RetryF)
-  when is_map(PNsMap) ->
-    F = fun (JObj, T) ->
-                Num = kz_json:get_ne_value(<<"id">>, JObj),
-                case kz_json:get_ne_value(<<"ok">>, JObj) =:= 'true'
-                    orelse kz_doc:revision(JObj) =/= 'undefined'
-                of
-                    'true' ->
-                        lager:debug("successfully changed ~s in ~s", [Num, Db]),
-                        knm_numbers:ok(maps:get(Num, PNsMap), T);
-                    'false' ->
-                        %% Weirdest thing here is on conflict doc was actually properly saved!
-                        R = kz_json:get_ne_value(<<"error">>, JObj),
-                        lager:warning("error changing ~s in ~s: ~s", [Num, Db, kz_json:encode(JObj)]),
-                        ErrorF(Num, kz_term:to_atom(R, 'true'), T)
-                end
-        end,
-    retry_conflicts(lists:foldl(F, T0, JObjs), Db, PNsMap, RetryF);
-handle_bulk_change(Db, JObjs, PNs, T, ErrorF, RetryF) ->
-    PNsMap = group_by_num(PNs),
-    handle_bulk_change(Db, JObjs, PNsMap, T, ErrorF, RetryF).
-
-handle_bulk_change(Db, JObjs, PNs, T, ErrorF) ->
-    RetryF = fun(Db1, PNs1, Num, T1) ->
-                     retry_save(Db1, PNs1, ErrorF, Num, T1)
-             end,
-    handle_bulk_change(Db, JObjs, PNs, T, ErrorF, RetryF).
-
--spec retry_save(kz_term:ne_binary(), pns_map(), bulk_change_error_fun(), knm_numbers:num(), knm_numbers:collection()) ->
-                        knm_numbers:collection().
-retry_save(Db, PNsMap, ErrorF, Num, T) ->
-    PN = maps:get(Num, PNsMap),
-    Update = kz_json:to_proplist(kz_doc:delete_revision(to_json(PN))),
-    case kz_datamgr:update_doc(Db, Num, [{'update', Update}
-                                        ,{'ensure_saved', 'true'}
-                                        ])
-    of
-        {'ok', _} -> knm_numbers:ok(PN, T);
-        {'error', R} -> ErrorF(Num, R, T)
-    end.
-
--spec retry_delete(kz_term:ne_binary(), pns_map(), bulk_change_error_fun(), knm_numbers:num(), knm_numbers:collection()) ->
-                          knm_numbers:collection().
-retry_delete(Db, PNsMap, ErrorF, Num, T) ->
-    PN = maps:get(Num, PNsMap),
-    case kz_datamgr:del_doc(Db, to_json(PN)) of
-        {'ok', _} -> knm_numbers:ok(PN, T);
-        {'error', R} -> ErrorF(Num, R, T)
-    end.
-
-retry_conflicts(T0, Db, PNsMap, RetryF) ->
-    {Conflicts, BaseT} = take_conflits(T0),
-    fold_retry(RetryF, Db, PNsMap, Conflicts, BaseT).
-
-take_conflits(T=#{ko := KOs}) ->
-    F = fun ({_Num, R}) when is_atom(R) -> 'false';
-            ({_Num, R}) -> knm_errors:cause(R) =:= <<"conflict">>
-        end,
-    {Conflicts, NewKOs} = lists:partition(F, maps:to_list(KOs)),
-    {Nums, _} = lists:unzip(Conflicts),
-    {Nums, T#{ko => maps:from_list(NewKOs)}}.
-
--spec fold_retry(bulk_change_retry_fun(), kz_term:ne_binary(), pns_map(), knm_numbers:nums(), knm_numbers:collection()) ->
-                        knm_numbers:collection().
-fold_retry(_, _, _, [], T) -> T;
-fold_retry(RetryF, Db, PNsMap, [Conflict|Conflicts], T0) ->
-    lager:error("~s conflicted, retrying", [Conflict]),
-    T = RetryF(Db, PNsMap, Conflict, T0),
-    fold_retry(RetryF, Db, PNsMap, Conflicts, T).
-
 do_handle_fetch(T=#{options := Options}, Doc) ->
     case knm_number:attempt(fun handle_fetch/2, [Doc, Options]) of
         {'ok', PN} -> knm_numbers:ok(PN, T);
@@ -334,60 +262,6 @@ group_by_db(Nums) ->
                 M#{Key => [Num | maps:get(Key, M, [])]}
         end,
     lists:foldl(F, #{}, Nums).
-
-group_by_num(PNs) ->
-    F = fun (PN, M) -> M#{number(PN) => PN} end,
-    lists:foldl(F, #{}, PNs).
-
-split_by_numberdb(PNs) ->
-    F = fun (PN, M) ->
-                Key = number_db(PN),
-                M#{Key => [PN | maps:get(Key, M, [])]}
-        end,
-    lists:foldl(F, #{}, PNs).
-
-split_by_assignedto(PNs) ->
-    F = fun (PN, M) ->
-                AssignedTo = assigned_to(PN),
-                Key = case kz_term:is_empty(AssignedTo) of
-                          'true' -> 'undefined';
-                          'false' -> existing_db_key(kz_util:format_account_db(AssignedTo))
-                      end,
-                M#{Key => [PN | maps:get(Key, M, [])]}
-        end,
-    lists:foldl(F, #{}, PNs).
-
-split_by_prevassignedto(PNs) ->
-    F = fun (PN, M) ->
-                PrevAssignedTo = prev_assigned_to(PN),
-                PrevIsCurrent = assigned_to(PN) =:= PrevAssignedTo,
-                Key = case PrevIsCurrent
-                          orelse kz_term:is_empty(PrevAssignedTo)
-                      of
-                          'true' when PrevIsCurrent ->
-                              lager:debug("~s prev_assigned_to is same as assigned_to,"
-                                          " not unassign-ing from prev", [number(PN)]
-                                         ),
-                              'undefined';
-                          'true' ->
-                              lager:debug("prev_assigned_to is empty for ~s, ignoring", [number(PN)]),
-                              'undefined';
-                          'false' -> existing_db_key(kz_util:format_account_db(PrevAssignedTo))
-                      end,
-                M#{Key => [PN | maps:get(Key, M, [])]}
-        end,
-    lists:foldl(F, #{}, PNs).
-
--spec existing_db_key(kz_term:ne_binary()) -> kz_term:api_ne_binary().
--ifdef(TEST).
-existing_db_key(Db) -> Db.
--else.
-existing_db_key(Db) ->
-    case kz_datamgr:db_exists(Db) of
-        'false' -> 'undefined';
-        _ -> Db
-    end.
--endif.
 
 -ifdef(TEST).
 
@@ -1795,6 +1669,59 @@ try_delete_from(SplitBy, T0, IgnoreDbNotFound) ->
         end,
     maps:fold(F, T0, SplitBy(knm_numbers:todo(T0))).
 
+-spec split_by_numberdb(knm_phone_numbers()) -> pns_map().
+split_by_numberdb(PNs) ->
+    F = fun (PN, M) ->
+                Key = number_db(PN),
+                M#{Key => [PN | maps:get(Key, M, [])]}
+        end,
+    lists:foldl(F, #{}, PNs).
+
+-spec split_by_assignedto(knm_phone_numbers()) -> pns_map().
+split_by_assignedto(PNs) ->
+    F = fun (PN, M) ->
+                AssignedTo = assigned_to(PN),
+                Key = case kz_term:is_empty(AssignedTo) of
+                          'true' -> 'undefined';
+                          'false' -> existing_db_key(kz_util:format_account_db(AssignedTo))
+                      end,
+                M#{Key => [PN | maps:get(Key, M, [])]}
+        end,
+    lists:foldl(F, #{}, PNs).
+
+-spec split_by_prevassignedto(knm_phone_numbers()) -> pns_map().
+split_by_prevassignedto(PNs) ->
+    F = fun (PN, M) ->
+                PrevAssignedTo = prev_assigned_to(PN),
+                PrevIsCurrent = assigned_to(PN) =:= PrevAssignedTo,
+                Key = case PrevIsCurrent
+                          orelse kz_term:is_empty(PrevAssignedTo)
+                      of
+                          'true' when PrevIsCurrent ->
+                              lager:debug("~s prev_assigned_to is same as assigned_to,"
+                                          " not unassign-ing from prev", [number(PN)]
+                                         ),
+                              'undefined';
+                          'true' ->
+                              lager:debug("prev_assigned_to is empty for ~s, ignoring", [number(PN)]),
+                              'undefined';
+                          'false' -> existing_db_key(kz_util:format_account_db(PrevAssignedTo))
+                      end,
+                M#{Key => [PN | maps:get(Key, M, [])]}
+        end,
+    lists:foldl(F, #{}, PNs).
+
+-spec existing_db_key(kz_term:ne_binary()) -> kz_term:api_ne_binary().
+-ifdef(TEST).
+existing_db_key(Db) -> Db.
+-else.
+existing_db_key(Db) ->
+    case kz_datamgr:db_exists(Db) of
+        'false' -> 'undefined';
+        _ -> Db
+    end.
+-endif.
+
 save_to(SplitBy, ErrorF, T0) ->
     F = fun FF ('undefined', PNs, T) ->
                 %% NumberDb can never be 'undefined', AccountDb can.
@@ -1820,6 +1747,84 @@ save_to(SplitBy, ErrorF, T0) ->
                 end
         end,
     maps:fold(F, T0, SplitBy(knm_numbers:todo(T0))).
+
+
+%% @doc Works the same with the output of save_docs and del_docs
+%% @end
+handle_bulk_change(Db, JObjs, PNsMap, T0, ErrorF, RetryF)
+  when is_map(PNsMap) ->
+    F = fun (JObj, T) ->
+                Num = kz_json:get_ne_value(<<"id">>, JObj),
+                case kz_json:get_ne_value(<<"ok">>, JObj) =:= 'true'
+                    orelse kz_doc:revision(JObj) =/= 'undefined'
+                of
+                    'true' ->
+                        lager:debug("successfully changed ~s in ~s", [Num, Db]),
+                        knm_numbers:ok(maps:get(Num, PNsMap), T);
+                    'false' ->
+                        %% Weirdest thing here is on conflict doc was actually properly saved!
+                        R = kz_json:get_ne_value(<<"error">>, JObj),
+                        lager:warning("error changing ~s in ~s: ~s", [Num, Db, kz_json:encode(JObj)]),
+                        ErrorF(Num, kz_term:to_atom(R, 'true'), T)
+                end
+        end,
+    retry_conflicts(lists:foldl(F, T0, JObjs), Db, PNsMap, RetryF);
+handle_bulk_change(Db, JObjs, PNs, T, ErrorF, RetryF) ->
+    PNsMap = group_by_num(PNs),
+    handle_bulk_change(Db, JObjs, PNsMap, T, ErrorF, RetryF).
+
+-spec group_by_num(knm_phone_numbers()) -> pns_map().
+group_by_num(PNs) ->
+    F = fun (PN, M) -> M#{number(PN) => PN} end,
+    lists:foldl(F, #{}, PNs).
+
+handle_bulk_change(Db, JObjs, PNs, T, ErrorF) ->
+    RetryF = fun(Db1, PNs1, Num, T1) ->
+                     retry_save(Db1, PNs1, ErrorF, Num, T1)
+             end,
+    handle_bulk_change(Db, JObjs, PNs, T, ErrorF, RetryF).
+
+-spec retry_save(kz_term:ne_binary(), pns_map(), bulk_change_error_fun(), knm_numbers:num(), knm_numbers:collection()) ->
+                        knm_numbers:collection().
+retry_save(Db, PNsMap, ErrorF, Num, T) ->
+    PN = maps:get(Num, PNsMap),
+    Update = kz_json:to_proplist(kz_doc:delete_revision(to_json(PN))),
+    case kz_datamgr:update_doc(Db, Num, [{'update', Update}
+                                        ,{'ensure_saved', 'true'}
+                                        ])
+    of
+        {'ok', _} -> knm_numbers:ok(PN, T);
+        {'error', R} -> ErrorF(Num, R, T)
+    end.
+
+-spec retry_delete(kz_term:ne_binary(), pns_map(), bulk_change_error_fun(), knm_numbers:num(), knm_numbers:collection()) ->
+                          knm_numbers:collection().
+retry_delete(Db, PNsMap, ErrorF, Num, T) ->
+    PN = maps:get(Num, PNsMap),
+    case kz_datamgr:del_doc(Db, to_json(PN)) of
+        {'ok', _} -> knm_numbers:ok(PN, T);
+        {'error', R} -> ErrorF(Num, R, T)
+    end.
+
+retry_conflicts(T0, Db, PNsMap, RetryF) ->
+    {Conflicts, BaseT} = take_conflits(T0),
+    fold_retry(RetryF, Db, PNsMap, Conflicts, BaseT).
+
+take_conflits(T=#{ko := KOs}) ->
+    F = fun ({_Num, R}) when is_atom(R) -> 'false';
+            ({_Num, R}) -> knm_errors:cause(R) =:= <<"conflict">>
+        end,
+    {Conflicts, NewKOs} = lists:partition(F, maps:to_list(KOs)),
+    {Nums, _} = lists:unzip(Conflicts),
+    {Nums, T#{ko => maps:from_list(NewKOs)}}.
+
+-spec fold_retry(bulk_change_retry_fun(), kz_term:ne_binary(), pns_map(), knm_numbers:nums(), knm_numbers:collection()) ->
+                        knm_numbers:collection().
+fold_retry(_, _, _, [], T) -> T;
+fold_retry(RetryF, Db, PNsMap, [Conflict|Conflicts], T0) ->
+    lager:error("~s conflicted, retrying", [Conflict]),
+    T = RetryF(Db, PNsMap, Conflict, T0),
+    fold_retry(RetryF, Db, PNsMap, Conflicts, T).
 
 assign_failure(NumOrNums, E, T) ->
     {'error', A, B, C} = (catch knm_errors:assign_failure('undefined', E)),

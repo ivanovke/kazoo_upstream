@@ -540,16 +540,8 @@ merge_okkos([T0|Ts]) ->
 id(T=#{'todo' := Todo}) -> ok(Todo, T).
 
 -spec ret(t()) -> ret().
-ret(#{'ok' := OKs
-     ,'ko' := KOs
-     ,'options' := Options
-     ,'quotes' := Quotes
-     }) ->
-    #{'ok' => OKs
-     ,'ko' => KOs %%FIXME Convert to error format
-     ,'options' => Options
-     ,'quotes' => Quotes
-     }.
+ret(T) -> T.
+%% 'ko' => KOs %%FIXME Convert to error format
 
 -spec to_json(ret()) -> kz_json:object().
 to_json(#{'ok' := Ns, 'ko' := KOs}) ->
