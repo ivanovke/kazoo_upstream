@@ -103,14 +103,13 @@
 -type knm_phone_number() :: #knm_phone_number{}.
 
 -type knm_phone_numbers() :: [knm_phone_number(), ...].
--type pns_map() :: #{kz_term:ne_binary() => knm_phone_numbers()}.
 -type bulk_change_error_fun() :: fun((kz_term:ne_binary()
                                      ,kz_datamgr:data_error()
                                      ,knm_numbers:collection()
                                      ) -> knm_numbers:collection()
                                               ).
 -type bulk_change_retry_fun() :: fun((kz_term:ne_binary()
-                                     ,pns_map()
+                                     ,grouped_phone_numbers()
                                      ,knm_numbers:num()
                                      ,knm_numbers:collection()
                                      ) -> knm_numbers:collection()
@@ -203,7 +202,7 @@ from_number_with_options(DID, Options) ->
 fetch(?NE_BINARY=Num) ->
     fetch(Num, knm_number_options:default());
 fetch(T0=#{todo := Nums, options := Options}) ->
-    Pairs = group_by_db(lists:usort(knm_converters:normalize(Nums))),
+    Pairs = group_by(lists:usort(knm_converters:normalize(Nums)), fun group_number_by_db/2),
     F = fun (NumberDb, NormalizedNums, T) ->
                 case fetch_in(NumberDb, NormalizedNums, Options) of
                     {'error', R} ->
@@ -255,13 +254,6 @@ do_handle_fetch(T=#{options := Options}, Doc) ->
         {'ok', PN} -> knm_numbers:ok(PN, T);
         {'error', R} -> knm_numbers:ko(kz_doc:id(Doc), R, T)
     end.
-
-group_by_db(Nums) ->
-    F = fun (Num, M) ->
-                Key = knm_converters:to_db(Num),
-                M#{Key => [Num | maps:get(Key, M, [])]}
-        end,
-    lists:foldl(F, #{}, Nums).
 
 -ifdef(TEST).
 
@@ -1613,7 +1605,7 @@ error_unauthorized() ->
 %%------------------------------------------------------------------------------
 -spec save_to_number_db(knm_numbers:collection()) -> knm_numbers:collection().
 save_to_number_db(T0) ->
-    save_to(fun split_by_numberdb/1, fun database_error/3, T0).
+    save_to(fun group_phone_number_by_number_db/2, fun database_error/3, T0).
 
 %%------------------------------------------------------------------------------
 %% @doc Makes sure number is assigned to assigned_to by creating number doc
@@ -1621,7 +1613,7 @@ save_to_number_db(T0) ->
 %% @end
 %%------------------------------------------------------------------------------
 assign(T0) ->
-    save_to(fun split_by_assignedto/1, fun assign_failure/3, T0).
+    save_to(fun group_phone_number_by_assigned_to/2, fun assign_failure/3, T0).
 
 %%------------------------------------------------------------------------------
 %% @doc Makes sure number is unassigned from prev_assigned_to by removing
@@ -1631,22 +1623,22 @@ assign(T0) ->
 -spec unassign_from_prev(knm_numbers:collection()) -> knm_numbers:collection().
 unassign_from_prev(T0) ->
     lager:debug("unassign_from_prev"),
-    try_delete_from(fun split_by_prevassignedto/1, T0, 'true').
+    try_delete_from(fun group_phone_number_by_prev_assigned_to/2, T0, 'true').
 
 try_delete_number_doc(T0) ->
     lager:debug("try_delete_number_doc"),
-    try_delete_from(fun split_by_numberdb/1, T0).
+    try_delete_from(fun group_phone_number_by_number_db/2, T0).
 
 try_delete_account_doc(T0) ->
     lager:debug("try_delete_account_doc"),
-    try_delete_from(fun split_by_assignedto/1, T0).
+    try_delete_from(fun group_phone_number_by_assigned_to/2, T0).
 
--spec try_delete_from(fun(), knm_numbers:collection()) -> knm_numbers:collection().
-try_delete_from(SplitBy, T0) ->
-    try_delete_from(SplitBy, T0, 'false').
+-spec try_delete_from(group_by_fun(), knm_numbers:collection()) -> knm_numbers:collection().
+try_delete_from(GroupFun, T0) ->
+    try_delete_from(GroupFun, T0, 'false').
 
--spec try_delete_from(fun(), knm_numbers:collection(), boolean()) -> knm_numbers:collection().
-try_delete_from(SplitBy, T0, IgnoreDbNotFound) ->
+-spec try_delete_from(group_by_fun(), knm_numbers:collection(), boolean()) -> knm_numbers:collection().
+try_delete_from(GroupFun, T0, IgnoreDbNotFound) ->
     F = fun ('undefined', PNs, T) ->
                 lager:debug("skipping: no db for ~s", [[[number(PN),$\s] || PN <- PNs]]),
                 knm_numbers:add_oks(PNs, T);
@@ -1667,49 +1659,7 @@ try_delete_from(SplitBy, T0, IgnoreDbNotFound) ->
                         database_error(Nums, E, T)
                 end
         end,
-    maps:fold(F, T0, SplitBy(knm_numbers:todo(T0))).
-
--spec split_by_numberdb(knm_phone_numbers()) -> pns_map().
-split_by_numberdb(PNs) ->
-    F = fun (PN, M) ->
-                Key = number_db(PN),
-                M#{Key => [PN | maps:get(Key, M, [])]}
-        end,
-    lists:foldl(F, #{}, PNs).
-
--spec split_by_assignedto(knm_phone_numbers()) -> pns_map().
-split_by_assignedto(PNs) ->
-    F = fun (PN, M) ->
-                AssignedTo = assigned_to(PN),
-                Key = case kz_term:is_empty(AssignedTo) of
-                          'true' -> 'undefined';
-                          'false' -> existing_db_key(kz_util:format_account_db(AssignedTo))
-                      end,
-                M#{Key => [PN | maps:get(Key, M, [])]}
-        end,
-    lists:foldl(F, #{}, PNs).
-
--spec split_by_prevassignedto(knm_phone_numbers()) -> pns_map().
-split_by_prevassignedto(PNs) ->
-    F = fun (PN, M) ->
-                PrevAssignedTo = prev_assigned_to(PN),
-                PrevIsCurrent = assigned_to(PN) =:= PrevAssignedTo,
-                Key = case PrevIsCurrent
-                          orelse kz_term:is_empty(PrevAssignedTo)
-                      of
-                          'true' when PrevIsCurrent ->
-                              lager:debug("~s prev_assigned_to is same as assigned_to,"
-                                          " not unassign-ing from prev", [number(PN)]
-                                         ),
-                              'undefined';
-                          'true' ->
-                              lager:debug("prev_assigned_to is empty for ~s, ignoring", [number(PN)]),
-                              'undefined';
-                          'false' -> existing_db_key(kz_util:format_account_db(PrevAssignedTo))
-                      end,
-                M#{Key => [PN | maps:get(Key, M, [])]}
-        end,
-    lists:foldl(F, #{}, PNs).
+    maps:fold(F, T0, group_by(knm_numbers:todo(T0), GroupFun)).
 
 -spec existing_db_key(kz_term:ne_binary()) -> kz_term:api_ne_binary().
 -ifdef(TEST).
@@ -1722,7 +1672,8 @@ existing_db_key(Db) ->
     end.
 -endif.
 
-save_to(SplitBy, ErrorF, T0) ->
+-spec save_to(group_by_fun(), bulk_change_error_fun(), knm_numbers:collection()) -> knm_numbers:collection().
+save_to(GroupFun, ErrorF, T0) ->
     F = fun FF ('undefined', PNs, T) ->
                 %% NumberDb can never be 'undefined', AccountDb can.
                 lager:debug("no db for ~p", [[number(PN) || PN <- PNs]]),
@@ -1733,7 +1684,10 @@ save_to(SplitBy, ErrorF, T0) ->
                 IsNumberDb = 'numbers' =:= kz_datamgr:db_classification(Db),
                 case save_docs(Db, Docs) of
                     {'ok', JObjs} ->
-                        handle_bulk_change(Db, JObjs, PNs, T, ErrorF);
+                        RetryF = fun(Db1, PNs1, Num, T1) ->
+                                         retry_save(Db1, PNs1, ErrorF, Num, T1)
+                                 end,
+                        handle_bulk_change(Db, JObjs, PNs, T, ErrorF, RetryF);
                     {'error', 'not_found'} when IsNumberDb ->
                         Nums = [kz_doc:id(Doc) || Doc <- Docs],
                         lager:debug("creating new number db '~s' for numbers ~p", [Db, Nums]),
@@ -1746,11 +1700,16 @@ save_to(SplitBy, ErrorF, T0) ->
                         database_error(Nums, E, T)
                 end
         end,
-    maps:fold(F, T0, SplitBy(knm_numbers:todo(T0))).
+    maps:fold(F, T0, group_by(knm_numbers:todo(T0), GroupFun)).
 
 
+%%------------------------------------------------------------------------------
 %% @doc Works the same with the output of save_docs and del_docs
 %% @end
+%%------------------------------------------------------------------------------
+-spec handle_bulk_change(kz_term:ne_binary(), kz_json:objects(), knm_phone_numbers() | grouped_phone_number()
+                        ,knm_numbers:collection(), bulk_change_error_fun(), bulk_change_retry_fun()
+                        ) -> knm_numbers:collection().
 handle_bulk_change(Db, JObjs, PNsMap, T0, ErrorF, RetryF)
   when is_map(PNsMap) ->
     F = fun (JObj, T) ->
@@ -1770,21 +1729,10 @@ handle_bulk_change(Db, JObjs, PNsMap, T0, ErrorF, RetryF)
         end,
     retry_conflicts(lists:foldl(F, T0, JObjs), Db, PNsMap, RetryF);
 handle_bulk_change(Db, JObjs, PNs, T, ErrorF, RetryF) ->
-    PNsMap = group_by_num(PNs),
+    PNsMap = group_by(PNs, fun group_phone_number_by_number/2),
     handle_bulk_change(Db, JObjs, PNsMap, T, ErrorF, RetryF).
 
--spec group_by_num(knm_phone_numbers()) -> pns_map().
-group_by_num(PNs) ->
-    F = fun (PN, M) -> M#{number(PN) => PN} end,
-    lists:foldl(F, #{}, PNs).
-
-handle_bulk_change(Db, JObjs, PNs, T, ErrorF) ->
-    RetryF = fun(Db1, PNs1, Num, T1) ->
-                     retry_save(Db1, PNs1, ErrorF, Num, T1)
-             end,
-    handle_bulk_change(Db, JObjs, PNs, T, ErrorF, RetryF).
-
--spec retry_save(kz_term:ne_binary(), pns_map(), bulk_change_error_fun(), knm_numbers:num(), knm_numbers:collection()) ->
+-spec retry_save(kz_term:ne_binary(), grouped_phone_number(), bulk_change_error_fun(), knm_numbers:num(), knm_numbers:collection()) ->
                         knm_numbers:collection().
 retry_save(Db, PNsMap, ErrorF, Num, T) ->
     PN = maps:get(Num, PNsMap),
@@ -1797,7 +1745,7 @@ retry_save(Db, PNsMap, ErrorF, Num, T) ->
         {'error', R} -> ErrorF(Num, R, T)
     end.
 
--spec retry_delete(kz_term:ne_binary(), pns_map(), bulk_change_error_fun(), knm_numbers:num(), knm_numbers:collection()) ->
+-spec retry_delete(kz_term:ne_binary(), grouped_phone_number(), bulk_change_error_fun(), knm_numbers:num(), knm_numbers:collection()) ->
                           knm_numbers:collection().
 retry_delete(Db, PNsMap, ErrorF, Num, T) ->
     PN = maps:get(Num, PNsMap),
@@ -1806,6 +1754,8 @@ retry_delete(Db, PNsMap, ErrorF, Num, T) ->
         {'error', R} -> ErrorF(Num, R, T)
     end.
 
+-spec retry_conflicts(knm_numbers:collection(), kz_term:ne_binary(), grouped_phone_number(), bulk_change_retry_fun()) ->
+                             knm_numbers:collection().
 retry_conflicts(T0, Db, PNsMap, RetryF) ->
     {Conflicts, BaseT} = take_conflits(T0),
     fold_retry(RetryF, Db, PNsMap, Conflicts, BaseT).
@@ -1818,7 +1768,7 @@ take_conflits(T=#{ko := KOs}) ->
     {Nums, _} = lists:unzip(Conflicts),
     {Nums, T#{ko => maps:from_list(NewKOs)}}.
 
--spec fold_retry(bulk_change_retry_fun(), kz_term:ne_binary(), pns_map(), knm_numbers:nums(), knm_numbers:collection()) ->
+-spec fold_retry(bulk_change_retry_fun(), kz_term:ne_binary(), grouped_phone_number(), knm_numbers:nums(), knm_numbers:collection()) ->
                         knm_numbers:collection().
 fold_retry(_, _, _, [], T) -> T;
 fold_retry(RetryF, Db, PNsMap, [Conflict|Conflicts], T0) ->
@@ -1883,3 +1833,73 @@ prepare_docs(Db, [Doc|Docs], Updated) ->
             prepare_docs(Db, Docs, [kz_doc:delete_revision(Doc)|Updated])
     end.
 -endif.
+
+%%%=============================================================================
+%%% Group things functions
+%%%=============================================================================
+
+-type group_by_fun() :: fun((kz_term:ne_binary() | knm_phone_number()) -> group_by_return()).
+-type group_by_return() :: grouped_binaries() |
+                           grouped_phone_number() |
+                           grouped_phone_numbers().
+
+-type grouped_binaries() :: #{kz_term:ne_binary() => kz_term:ne_binaries()}.
+-type grouped_phone_number() :: #{kz_term:ne_binary() => knm_phone_number()}.
+-type grouped_phone_numbers() :: #{kz_term:api_ne_binary() => knm_phone_numbers()}.
+
+%%------------------------------------------------------------------------------
+%% @doc Generic group by function, groups/split things using a group function.
+%% @end
+%%------------------------------------------------------------------------------
+-spec group_by(kz_term:ne_binaries() | knm_phone_numbers(), group_by_fun()) -> group_by_return().
+group_by(Things, GroupFun)
+  when is_list(Things),
+       is_function(GroupFun, 2) ->
+    lists:foldl(GroupFun, #{}, Things).
+
+%%------------------------------------------------------------------------------
+%% @doc Group numbers by their database name.
+%% @end
+%%------------------------------------------------------------------------------
+-spec group_number_by_db(kz_term:ne_binary(), grouped_binaries()) -> grouped_binaries().
+group_number_by_db(Number, MapAcc) ->
+    Key = knm_converters:to_db(Number),
+    MapAcc#{Key => [Number | maps:get(Key, MapAcc, [])]}.
+
+-spec group_phone_number_by_number(knm_phone_number(), grouped_phone_number()) ->
+                                           grouped_phone_number().
+group_phone_number_by_number(PN, MapAcc) ->
+    MapAcc#{number(PN) => PN}.
+
+-spec group_phone_number_by_number_db(knm_phone_number(), grouped_phone_numbers()) -> grouped_phone_numbers().
+group_phone_number_by_number_db(PN, MapAcc) ->
+    Key = number_db(PN),
+    MapAcc#{Key => [PN | maps:get(Key, MapAcc, [])]}.
+
+-spec group_phone_number_by_assigned_to(knm_phone_number(), grouped_phone_numbers()) -> grouped_phone_numbers().
+group_phone_number_by_assigned_to(PN, MapAcc) ->
+    AssignedTo = assigned_to(PN),
+    Key = case kz_term:is_empty(AssignedTo) of
+              'true' -> 'undefined';
+              'false' -> existing_db_key(kz_util:format_account_db(AssignedTo))
+          end,
+    MapAcc#{Key => [PN | maps:get(Key, MapAcc, [])]}.
+
+-spec group_phone_number_by_prev_assigned_to(knm_phone_number(), grouped_phone_numbers()) -> grouped_phone_numbers().
+group_phone_number_by_prev_assigned_to(PN, MapAcc) ->
+    PrevAssignedTo = prev_assigned_to(PN),
+    PrevIsCurrent = assigned_to(PN) =:= PrevAssignedTo,
+    Key = case PrevIsCurrent
+               orelse kz_term:is_empty(PrevAssignedTo)
+          of
+              'true' when PrevIsCurrent ->
+                  lager:debug("~s prev_assigned_to is same as assigned_to,"
+                              " not unassign-ing from prev", [number(PN)]
+                             ),
+                  'undefined';
+              'true' ->
+                  lager:debug("prev_assigned_to is empty for ~s, ignoring", [number(PN)]),
+                  'undefined';
+              'false' -> existing_db_key(kz_util:format_account_db(PrevAssignedTo))
+          end,
+    MapAcc#{Key => [PN | maps:get(Key, MapAcc, [])]}.
