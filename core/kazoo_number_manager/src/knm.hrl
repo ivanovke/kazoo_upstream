@@ -111,7 +111,7 @@
 -define(CHILD_ACCOUNT_DB,    <<"account%2Fch%2Fil%2Fd_account_670a04df0014d0b27a">>).
 -define(UNRELATED_ACCOUNT_ID, <<"unrelated_account_b113394f16cb71">>).
 
--define(RESELLER_ACCOUNT_DOC, kz_json:from_list([{kz_doc:path_id(), ?RESELLER_ACCOUNT_ID}])).
+-define(RESELLER_ACCOUNT_DOC, kz_json:set_value(kz_doc:path_id(), ?RESELLER_ACCOUNT_ID, kz_json:new())).
 
 -define(FEATURES_FOR_LOCAL_NUM, kz_json:from_list([{?FEATURE_LOCAL, kz_json:new()}])).
 
