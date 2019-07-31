@@ -759,9 +759,11 @@ do_destructively_remove_from_accountdb(#{todo := [{NumberDb, JObjs} | Rest]
                     do_destructively_remove_from_accountdb(State#{todo => Rest}, AccountDb);
                 {'ok', ToRemove} ->
                     ?SUP_LOG_DEBUG("     destructively removing ~b", [length(ToRemove)]),
-                    _ = kz_datamgr:del_docs(AccountDb, [kz_json:from_list([{kz_doc:path_id(), kz_json:get_value(<<"key">>, J)}
-                                                                          ,{kz_doc:path_revision(), kz_json:get_value([<<"value">>, <<"rev">>], J)}
-                                                                          ])
+                    _ = kz_datamgr:del_docs(AccountDb, [kz_json:expand(
+                                                          kz_json:from_list([{kz_doc:path_id(), kz_json:get_value(<<"key">>, J)}
+                                                                            ,{kz_doc:path_revision(), kz_json:get_value([<<"value">>, <<"rev">>], J)}
+                                                                            ])
+                                                         )
                                                         || J <- ToRemove
                                                        ]
                                            ),

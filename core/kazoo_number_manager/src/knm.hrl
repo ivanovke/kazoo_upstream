@@ -116,315 +116,330 @@
 -define(FEATURES_FOR_LOCAL_NUM, kz_json:from_list([{?FEATURE_LOCAL, kz_json:new()}])).
 
 -define(AVAILABLE_NUMBER
-       ,kz_json:from_list(
-          [{kz_doc:path_id(), ?TEST_AVAILABLE_NUM}
-          ,{kz_doc:path_revision(), <<"10-7dd6a1523e81a4e3c2689140ed3a8e69">>}
-          ,{<<"my_key">>, <<"my string">>}
-          ,{kz_doc:path_modified(), 63565934349}
-          ,{kzd_phone_numbers:pvt_features_path(), ?FEATURES_FOR_LOCAL_NUM}
-          ,{kzd_phone_numbers:pvt_assigned_to_path(), undefined}
-          ,{kzd_phone_numbers:pvt_previously_assigned_to_path(), ?RESELLER_ACCOUNT_ID}
-          ,{kzd_phone_numbers:pvt_reserve_history_path(), []}
-          ,{kzd_phone_numbers:pvt_module_name_path(), ?CARRIER_LOCAL}
-          ,{kzd_phone_numbers:pvt_state_path(), ?NUMBER_STATE_AVAILABLE}
-          ,{kzd_phone_numbers:pvt_db_name_path(), <<"numbers%2F%2B1555">>}
-          ,{kz_doc:path_created(), 63565934344}
-          ,{kzd_phone_numbers:pvt_used_by_path(), undefined}
-          ])).
+       ,kz_json:expand(
+          kz_json:from_list(
+            [{kz_doc:path_id(), ?TEST_AVAILABLE_NUM}
+            ,{kz_doc:path_revision(), <<"10-7dd6a1523e81a4e3c2689140ed3a8e69">>}
+            ,{[<<"my_key">>], <<"my string">>}
+            ,{kz_doc:path_modified(), 63565934349}
+            ,{kzd_phone_numbers:pvt_features_path(), ?FEATURES_FOR_LOCAL_NUM}
+            ,{kzd_phone_numbers:pvt_assigned_to_path(), undefined}
+            ,{kzd_phone_numbers:pvt_previously_assigned_to_path(), ?RESELLER_ACCOUNT_ID}
+            ,{kzd_phone_numbers:pvt_reserve_history_path(), []}
+            ,{kzd_phone_numbers:pvt_module_name_path(), ?CARRIER_LOCAL}
+            ,{kzd_phone_numbers:pvt_state_path(), ?NUMBER_STATE_AVAILABLE}
+            ,{kzd_phone_numbers:pvt_db_name_path(), <<"numbers%2F%2B1555">>}
+            ,{kz_doc:path_created(), 63565934344}
+            ,{kzd_phone_numbers:pvt_used_by_path(), undefined}
+            ]))).
 
 -define(IN_SERVICE_NUMBER
-       ,kz_json:from_list(
-          [{kz_doc:path_id(), ?TEST_IN_SERVICE_NUM}
-          ,{kz_doc:path_revision(), <<"3-7dd6a1523e81a4e3c2689140ed3a8e69">>}
-          ,{kz_doc:path_modified(), 63565934349}
-          ,{kzd_phone_numbers:pvt_features_path(), ?FEATURES_FOR_LOCAL_NUM}
-          ,{kzd_phone_numbers:pvt_assigned_to_path(), ?RESELLER_ACCOUNT_ID}
-          ,{kzd_phone_numbers:pvt_reserve_history_path(), [?RESELLER_ACCOUNT_ID]}
-          ,{kzd_phone_numbers:pvt_module_name_path(), ?CARRIER_LOCAL}
-          ,{kzd_phone_numbers:pvt_state_path(), ?NUMBER_STATE_IN_SERVICE}
-          ,{kzd_phone_numbers:pvt_db_name_path(), <<"numbers%2F%2B1555">>}
-          ,{kz_doc:path_created(), 63565934344}
-          ,{kzd_phone_numbers:pvt_used_by_path(), <<"callflow">>}
-          ])).
+       ,kz_json:expand(
+          kz_json:from_list(
+            [{kz_doc:path_id(), ?TEST_IN_SERVICE_NUM}
+            ,{kz_doc:path_revision(), <<"3-7dd6a1523e81a4e3c2689140ed3a8e69">>}
+            ,{kz_doc:path_modified(), 63565934349}
+            ,{kzd_phone_numbers:pvt_features_path(), ?FEATURES_FOR_LOCAL_NUM}
+            ,{kzd_phone_numbers:pvt_assigned_to_path(), ?RESELLER_ACCOUNT_ID}
+            ,{kzd_phone_numbers:pvt_reserve_history_path(), [?RESELLER_ACCOUNT_ID]}
+            ,{kzd_phone_numbers:pvt_module_name_path(), ?CARRIER_LOCAL}
+            ,{kzd_phone_numbers:pvt_state_path(), ?NUMBER_STATE_IN_SERVICE}
+            ,{kzd_phone_numbers:pvt_db_name_path(), <<"numbers%2F%2B1555">>}
+            ,{kz_doc:path_created(), 63565934344}
+            ,{kzd_phone_numbers:pvt_used_by_path(), <<"callflow">>}
+            ]))).
 
 -define(IN_SERVICE_MDN
-       ,kz_json:from_list(
-          [{kz_doc:path_id(), ?TEST_IN_SERVICE_MDN}
-          ,{kz_doc:path_revision(), <<"4-7dd6a1523e81a4e3c2689140ed3a8e69">>}
-          ,{kz_doc:path_modified(), 63565934349}
-          ,{kzd_phone_numbers:pvt_features_path(), ?FEATURES_FOR_LOCAL_NUM}
-          ,{kzd_phone_numbers:pvt_assigned_to_path(), ?RESELLER_ACCOUNT_ID}
-          ,{kzd_phone_numbers:pvt_reserve_history_path(), [?RESELLER_ACCOUNT_ID]}
-          ,{kzd_phone_numbers:pvt_module_name_path(), ?CARRIER_MDN}
-          ,{kzd_phone_numbers:pvt_state_path(), ?NUMBER_STATE_IN_SERVICE}
-          ,{kzd_phone_numbers:pvt_db_name_path(), <<"numbers%2F%2B1555">>}
-          ,{kz_doc:path_created(), 63565934344}
-          ])).
+       ,kz_json:expand(
+          kz_json:from_list(
+            [{kz_doc:path_id(), ?TEST_IN_SERVICE_MDN}
+            ,{kz_doc:path_revision(), <<"4-7dd6a1523e81a4e3c2689140ed3a8e69">>}
+            ,{kz_doc:path_modified(), 63565934349}
+            ,{kzd_phone_numbers:pvt_features_path(), ?FEATURES_FOR_LOCAL_NUM}
+            ,{kzd_phone_numbers:pvt_assigned_to_path(), ?RESELLER_ACCOUNT_ID}
+            ,{kzd_phone_numbers:pvt_reserve_history_path(), [?RESELLER_ACCOUNT_ID]}
+            ,{kzd_phone_numbers:pvt_module_name_path(), ?CARRIER_MDN}
+            ,{kzd_phone_numbers:pvt_state_path(), ?NUMBER_STATE_IN_SERVICE}
+            ,{kzd_phone_numbers:pvt_db_name_path(), <<"numbers%2F%2B1555">>}
+            ,{kz_doc:path_created(), 63565934344}
+            ]))).
 
 -define(IN_SERVICE_BAD_CARRIER_NUMBER
-       ,kz_json:from_list(
-          [{kz_doc:path_id(), ?TEST_IN_SERVICE_BAD_CARRIER_NUM}
-          ,{kz_doc:path_revision(), <<"3-7dd6a1523e81a4e3c2689140ed3a8e69">>}
-          ,{kz_doc:path_modified(), 63565934349}
-          ,{kzd_phone_numbers:pvt_features_path(), kz_json:new()}
-          ,{kzd_phone_numbers:pvt_assigned_to_path(), ?RESELLER_ACCOUNT_ID}
-          ,{kzd_phone_numbers:pvt_reserve_history_path(), [?RESELLER_ACCOUNT_ID]}
-          ,{kzd_phone_numbers:pvt_module_name_path(), <<"knm_pacwest">>}
-          ,{kzd_phone_numbers:pvt_state_path(), ?NUMBER_STATE_IN_SERVICE}
-          ,{kzd_phone_numbers:pvt_db_name_path(), <<"numbers%2F%2B1555">>}
-          ,{kz_doc:path_created(), 63565934344}
-          ,{kzd_phone_numbers:pvt_used_by_path(), <<"callflow">>}
-          ])).
+       ,kz_json:expand(
+          kz_json:from_list(
+            [{kz_doc:path_id(), ?TEST_IN_SERVICE_BAD_CARRIER_NUM}
+            ,{kz_doc:path_revision(), <<"3-7dd6a1523e81a4e3c2689140ed3a8e69">>}
+            ,{kz_doc:path_modified(), 63565934349}
+            ,{kzd_phone_numbers:pvt_features_path(), kz_json:new()}
+            ,{kzd_phone_numbers:pvt_assigned_to_path(), ?RESELLER_ACCOUNT_ID}
+            ,{kzd_phone_numbers:pvt_reserve_history_path(), [?RESELLER_ACCOUNT_ID]}
+            ,{kzd_phone_numbers:pvt_module_name_path(), <<"knm_pacwest">>}
+            ,{kzd_phone_numbers:pvt_state_path(), ?NUMBER_STATE_IN_SERVICE}
+            ,{kzd_phone_numbers:pvt_db_name_path(), <<"numbers%2F%2B1555">>}
+            ,{kz_doc:path_created(), 63565934344}
+            ,{kzd_phone_numbers:pvt_used_by_path(), <<"callflow">>}
+            ]))).
 
 -define(IN_SERVICE_WITH_HISTORY_NUMBER
-       ,kz_json:from_list(
-          [{kz_doc:path_id(), ?TEST_IN_SERVICE_WITH_HISTORY_NUM}
-          ,{kz_doc:path_revision(), <<"3-7dd6a1523e81a4e3c2689140ed3a8e69">>}
-          ,{kz_doc:path_modified(), 63565934349}
-          ,{kzd_phone_numbers:pvt_features_path(), ?FEATURES_FOR_LOCAL_NUM}
-          ,{kzd_phone_numbers:pvt_assigned_to_path(), ?RESELLER_ACCOUNT_ID}
-          ,{kzd_phone_numbers:pvt_reserve_history_path(), [?RESELLER_ACCOUNT_ID, ?MASTER_ACCOUNT_ID]}
-          ,{kzd_phone_numbers:pvt_module_name_path(), ?CARRIER_LOCAL}
-          ,{kzd_phone_numbers:pvt_state_path(), ?NUMBER_STATE_IN_SERVICE}
-          ,{kzd_phone_numbers:pvt_db_name_path(), <<"numbers%2F%2B1555">>}
-          ,{kz_doc:path_created(), 63565934344}
-          ,{kzd_phone_numbers:pvt_used_by_path(), <<"callflow">>}
-          ])).
+       ,kz_json:expand(
+          kz_json:from_list(
+            [{kz_doc:path_id(), ?TEST_IN_SERVICE_WITH_HISTORY_NUM}
+            ,{kz_doc:path_revision(), <<"3-7dd6a1523e81a4e3c2689140ed3a8e69">>}
+            ,{kz_doc:path_modified(), 63565934349}
+            ,{kzd_phone_numbers:pvt_features_path(), ?FEATURES_FOR_LOCAL_NUM}
+            ,{kzd_phone_numbers:pvt_assigned_to_path(), ?RESELLER_ACCOUNT_ID}
+            ,{kzd_phone_numbers:pvt_reserve_history_path(), [?RESELLER_ACCOUNT_ID, ?MASTER_ACCOUNT_ID]}
+            ,{kzd_phone_numbers:pvt_module_name_path(), ?CARRIER_LOCAL}
+            ,{kzd_phone_numbers:pvt_state_path(), ?NUMBER_STATE_IN_SERVICE}
+            ,{kzd_phone_numbers:pvt_db_name_path(), <<"numbers%2F%2B1555">>}
+            ,{kz_doc:path_created(), 63565934344}
+            ,{kzd_phone_numbers:pvt_used_by_path(), <<"callflow">>}
+            ]))).
 
 -define(RESERVED_NUMBER
-       ,kz_json:from_list(
-          [{kz_doc:path_id(), ?TEST_RESERVED_NUM}
-          ,{kz_doc:path_revision(), <<"2-7dddead523e81a4e3c2689140ed3abeef">>}
-          ,{kz_doc:path_modified(), 63565935527}
-          ,{kzd_phone_numbers:pvt_features_path(), ?FEATURES_FOR_LOCAL_NUM}
-          ,{kzd_phone_numbers:pvt_assigned_to_path(), ?RESELLER_ACCOUNT_ID}
-          ,{kzd_phone_numbers:pvt_reserve_history_path(), [?RESELLER_ACCOUNT_ID]}
-          ,{kzd_phone_numbers:pvt_module_name_path(), ?CARRIER_LOCAL}
-          ,{kzd_phone_numbers:pvt_state_path(), ?NUMBER_STATE_RESERVED}
-          ,{kzd_phone_numbers:pvt_db_name_path(), <<"numbers%2F%2B1425">>}
-          ,{kz_doc:path_created(), 63565935000}
-          ])).
+       ,kz_json:expand(
+          kz_json:from_list(
+            [{kz_doc:path_id(), ?TEST_RESERVED_NUM}
+            ,{kz_doc:path_revision(), <<"2-7dddead523e81a4e3c2689140ed3abeef">>}
+            ,{kz_doc:path_modified(), 63565935527}
+            ,{kzd_phone_numbers:pvt_features_path(), ?FEATURES_FOR_LOCAL_NUM}
+            ,{kzd_phone_numbers:pvt_assigned_to_path(), ?RESELLER_ACCOUNT_ID}
+            ,{kzd_phone_numbers:pvt_reserve_history_path(), [?RESELLER_ACCOUNT_ID]}
+            ,{kzd_phone_numbers:pvt_module_name_path(), ?CARRIER_LOCAL}
+            ,{kzd_phone_numbers:pvt_state_path(), ?NUMBER_STATE_RESERVED}
+            ,{kzd_phone_numbers:pvt_db_name_path(), <<"numbers%2F%2B1425">>}
+            ,{kz_doc:path_created(), 63565935000}
+            ]))).
 
 -define(EXISTING_TOLL
-       ,kz_json:from_list(
-          [{kz_doc:path_id(), ?TEST_EXISTING_TOLL}
-          ,{kz_doc:path_revision(), <<"10-7dd6a1523e81a4e3c2689140ed3a8e69">>}
-          ,{kz_doc:path_modified(), 63565934349}
-          ,{kzd_phone_numbers:pvt_features_path(), ?FEATURES_FOR_LOCAL_NUM}
-          ,{kzd_phone_numbers:pvt_assigned_to_path(), ?RESELLER_ACCOUNT_ID}
-          ,{kzd_phone_numbers:pvt_reserve_history_path(), [?RESELLER_ACCOUNT_ID]}
-          ,{kzd_phone_numbers:pvt_module_name_path(), ?CARRIER_LOCAL}
-          ,{kzd_phone_numbers:pvt_state_path(), ?NUMBER_STATE_AVAILABLE}
-          ,{kzd_phone_numbers:pvt_db_name_path(), <<"numbers%2F%2B1800">>}
-          ,{kz_doc:path_created(), 63565934344}
-          ,{kzd_phone_numbers:pvt_used_by_path(), <<"callflow">>}
-          ])).
+       ,kz_json:expand(
+          kz_json:from_list(
+            [{kz_doc:path_id(), ?TEST_EXISTING_TOLL}
+            ,{kz_doc:path_revision(), <<"10-7dd6a1523e81a4e3c2689140ed3a8e69">>}
+            ,{kz_doc:path_modified(), 63565934349}
+            ,{kzd_phone_numbers:pvt_features_path(), ?FEATURES_FOR_LOCAL_NUM}
+            ,{kzd_phone_numbers:pvt_assigned_to_path(), ?RESELLER_ACCOUNT_ID}
+            ,{kzd_phone_numbers:pvt_reserve_history_path(), [?RESELLER_ACCOUNT_ID]}
+            ,{kzd_phone_numbers:pvt_module_name_path(), ?CARRIER_LOCAL}
+            ,{kzd_phone_numbers:pvt_state_path(), ?NUMBER_STATE_AVAILABLE}
+            ,{kzd_phone_numbers:pvt_db_name_path(), <<"numbers%2F%2B1800">>}
+            ,{kz_doc:path_created(), 63565934344}
+            ,{kzd_phone_numbers:pvt_used_by_path(), <<"callflow">>}
+            ]))).
 
 -define(TELNYX_NUMBER
-       ,kz_json:from_list(
-          [{kz_doc:path_id(), ?TEST_TELNYX_NUM}
-          ,{kz_doc:path_revision(), <<"10-7dd6a1523e81a4e3c2689140ed3a8e69">>}
-          ,{kz_doc:path_modified(), 63565934349}
-          ,{kzd_phone_numbers:pvt_assigned_to_path(), ?RESELLER_ACCOUNT_ID}
-          ,{kzd_phone_numbers:pvt_reserve_history_path(), [?RESELLER_ACCOUNT_ID]}
-          ,{kzd_phone_numbers:pvt_module_name_path(), <<"knm_telnyx">>}
-          ,{kzd_phone_numbers:pvt_state_path(), ?NUMBER_STATE_AVAILABLE}
-          ,{kzd_phone_numbers:pvt_db_name_path(), <<"numbers%2F%2B1435">>}
-          ,{kz_doc:path_created(), 63565934344}
-          ])).
+       ,kz_json:expand(
+          kz_json:from_list(
+            [{kz_doc:path_id(), ?TEST_TELNYX_NUM}
+            ,{kz_doc:path_revision(), <<"10-7dd6a1523e81a4e3c2689140ed3a8e69">>}
+            ,{kz_doc:path_modified(), 63565934349}
+            ,{kzd_phone_numbers:pvt_assigned_to_path(), ?RESELLER_ACCOUNT_ID}
+            ,{kzd_phone_numbers:pvt_reserve_history_path(), [?RESELLER_ACCOUNT_ID]}
+            ,{kzd_phone_numbers:pvt_module_name_path(), <<"knm_telnyx">>}
+            ,{kzd_phone_numbers:pvt_state_path(), ?NUMBER_STATE_AVAILABLE}
+            ,{kzd_phone_numbers:pvt_db_name_path(), <<"numbers%2F%2B1435">>}
+            ,{kz_doc:path_created(), 63565934344}
+            ]))).
 
 -define(VITELITY_NUMBER
-       ,kz_json:from_list(
-          [{kz_doc:path_id(), ?TEST_VITELITY_NUM}
-          ,{kz_doc:path_revision(), <<"1-deada1523e81a4e3c2689140ed3a8e69">>}
-          ,{?FEATURE_CNAM, kz_json:from_list(
-                             [{?CNAM_INBOUND_LOOKUP, true}
-                             ,{?CNAM_DISPLAY_NAME, <<"Rose Bud">>}
-                             ])}
-          ,{?FEATURE_PREPEND, kz_json:from_list(
-                                [{?PREPEND_ENABLED, true}
-                                ,{?PREPEND_NAME, <<"Citizen">>}
-                                ,{?PREPEND_NUMBER, <<"75657869">>}
-                                ])}
-          ,{kz_doc:path_modified(), 63565911000}
-          ,{kzd_phone_numbers:pvt_features_path(), kz_json:from_list_recursive(
-                                                     [{?FEATURE_CNAM_INBOUND, [{?CNAM_INBOUND_LOOKUP, true}]}
-                                                     ,{?FEATURE_CNAM_OUTBOUND, [{?CNAM_DISPLAY_NAME, <<"Rose Bud">>}]}
-                                                     ,{?FEATURE_PREPEND, [{?PREPEND_ENABLED, true}
-                                                                         ,{?PREPEND_NAME, <<"Citizen">>}
-                                                                         ,{?PREPEND_NUMBER, <<"75657869">>}
-                                                                         ]}
-                                                     ])}
-          ,{kzd_phone_numbers:pvt_assigned_to_path(), ?RESELLER_ACCOUNT_ID}
-          ,{kzd_phone_numbers:pvt_reserve_history_path(), [?RESELLER_ACCOUNT_ID]}
-          ,{kzd_phone_numbers:pvt_module_name_path(), <<"knm_vitelity">>}
-          ,{kzd_phone_numbers:pvt_state_path(), ?NUMBER_STATE_IN_SERVICE}
-          ,{kzd_phone_numbers:pvt_db_name_path(), <<"numbers%2F%2B1812">>}
-          ,{kz_doc:path_created(), 63565911001}
-          ])).
+       ,kz_json:expand(
+          kz_json:from_list(
+            [{kz_doc:path_id(), ?TEST_VITELITY_NUM}
+            ,{kz_doc:path_revision(), <<"1-deada1523e81a4e3c2689140ed3a8e69">>}
+            ,{?FEATURE_CNAM, kz_json:from_list(
+                               [{?CNAM_INBOUND_LOOKUP, true}
+                               ,{?CNAM_DISPLAY_NAME, <<"Rose Bud">>}
+                               ])}
+            ,{?FEATURE_PREPEND, kz_json:from_list(
+                                  [{?PREPEND_ENABLED, true}
+                                  ,{?PREPEND_NAME, <<"Citizen">>}
+                                  ,{?PREPEND_NUMBER, <<"75657869">>}
+                                  ])}
+            ,{kz_doc:path_modified(), 63565911000}
+            ,{kzd_phone_numbers:pvt_features_path(), kz_json:from_list_recursive(
+                                                       [{?FEATURE_CNAM_INBOUND, [{?CNAM_INBOUND_LOOKUP, true}]}
+                                                       ,{?FEATURE_CNAM_OUTBOUND, [{?CNAM_DISPLAY_NAME, <<"Rose Bud">>}]}
+                                                       ,{?FEATURE_PREPEND, [{?PREPEND_ENABLED, true}
+                                                                           ,{?PREPEND_NAME, <<"Citizen">>}
+                                                                           ,{?PREPEND_NUMBER, <<"75657869">>}
+                                                                           ]}
+                                                       ])}
+            ,{kzd_phone_numbers:pvt_assigned_to_path(), ?RESELLER_ACCOUNT_ID}
+            ,{kzd_phone_numbers:pvt_reserve_history_path(), [?RESELLER_ACCOUNT_ID]}
+            ,{kzd_phone_numbers:pvt_module_name_path(), <<"knm_vitelity">>}
+            ,{kzd_phone_numbers:pvt_state_path(), ?NUMBER_STATE_IN_SERVICE}
+            ,{kzd_phone_numbers:pvt_db_name_path(), <<"numbers%2F%2B1812">>}
+            ,{kz_doc:path_created(), 63565911001}
+            ]))).
 
 -define(PORT_IN_NUMBER
-       ,kz_json:from_list(
-          [{kz_doc:path_id(), ?TEST_PORT_IN_NUM}
-          ,{kz_doc:path_revision(), <<"2-7dddead523e81a4e3c2689140ed3a8e69">>}
-          ,{kz_doc:path_modified(), 63565934327}
-          ,{kzd_phone_numbers:pvt_features_path(), ?FEATURES_FOR_LOCAL_NUM}
-          ,{kzd_phone_numbers:pvt_assigned_to_path(), ?RESELLER_ACCOUNT_ID}
-          ,{kzd_phone_numbers:pvt_reserve_history_path(), [?RESELLER_ACCOUNT_ID]}
-          ,{kzd_phone_numbers:pvt_module_name_path(), ?PORT_IN_MODULE_NAME}
-          ,{kzd_phone_numbers:pvt_state_path(), ?NUMBER_STATE_PORT_IN}
-          ,{kzd_phone_numbers:pvt_db_name_path(), <<"numbers%2F%2B1425">>}
-          ,{kz_doc:path_created(), 63565934000}
-          ])).
+       ,kz_json:expand(
+          kz_json:from_list(
+            [{kz_doc:path_id(), ?TEST_PORT_IN_NUM}
+            ,{kz_doc:path_revision(), <<"2-7dddead523e81a4e3c2689140ed3a8e69">>}
+            ,{kz_doc:path_modified(), 63565934327}
+            ,{kzd_phone_numbers:pvt_features_path(), ?FEATURES_FOR_LOCAL_NUM}
+            ,{kzd_phone_numbers:pvt_assigned_to_path(), ?RESELLER_ACCOUNT_ID}
+            ,{kzd_phone_numbers:pvt_reserve_history_path(), [?RESELLER_ACCOUNT_ID]}
+            ,{kzd_phone_numbers:pvt_module_name_path(), ?PORT_IN_MODULE_NAME}
+            ,{kzd_phone_numbers:pvt_state_path(), ?NUMBER_STATE_PORT_IN}
+            ,{kzd_phone_numbers:pvt_db_name_path(), <<"numbers%2F%2B1425">>}
+            ,{kz_doc:path_created(), 63565934000}
+            ]))).
 
 -define(PORT_IN2_NUMBER
-       ,kz_json:from_list(
-          [{kz_doc:path_id(), ?TEST_PORT_IN2_NUM}
-          ,{kz_doc:path_revision(), <<"2-7dddead523e81a4e3c2689140ed3abeef">>}
-          ,{kz_doc:path_modified(), 63565935527}
-          ,{kzd_phone_numbers:pvt_features_path(), ?FEATURES_FOR_LOCAL_NUM}
-          ,{kzd_phone_numbers:pvt_assigned_to_path(), ?RESELLER_ACCOUNT_ID}
-          ,{kzd_phone_numbers:pvt_reserve_history_path(), [?RESELLER_ACCOUNT_ID]}
-          ,{kzd_phone_numbers:pvt_module_name_path(), ?CARRIER_LOCAL}
-          ,{kzd_phone_numbers:pvt_state_path(), ?NUMBER_STATE_PORT_IN}
-          ,{kzd_phone_numbers:pvt_db_name_path(), <<"numbers%2F%2B1425">>}
-          ,{kz_doc:path_created(), 63565935000}
-          ])).
+       ,kz_json:expand(
+          kz_json:from_list(
+            [{kz_doc:path_id(), ?TEST_PORT_IN2_NUM}
+            ,{kz_doc:path_revision(), <<"2-7dddead523e81a4e3c2689140ed3abeef">>}
+            ,{kz_doc:path_modified(), 63565935527}
+            ,{kzd_phone_numbers:pvt_features_path(), ?FEATURES_FOR_LOCAL_NUM}
+            ,{kzd_phone_numbers:pvt_assigned_to_path(), ?RESELLER_ACCOUNT_ID}
+            ,{kzd_phone_numbers:pvt_reserve_history_path(), [?RESELLER_ACCOUNT_ID]}
+            ,{kzd_phone_numbers:pvt_module_name_path(), ?CARRIER_LOCAL}
+            ,{kzd_phone_numbers:pvt_state_path(), ?NUMBER_STATE_PORT_IN}
+            ,{kzd_phone_numbers:pvt_db_name_path(), <<"numbers%2F%2B1425">>}
+            ,{kz_doc:path_created(), 63565935000}
+            ]))).
 
 -define(PORT_IN3_NUMBER
-       ,kz_json:from_list(
-          [{kz_doc:path_id(), ?TEST_PORT_IN3_NUM}
-          ,{kz_doc:path_revision(), <<"1-adddead523e81a4e3c2689140ed3abeef">>}
-          ,{kz_doc:path_modified(), 63565935527}
-          ,{kzd_phone_numbers:pvt_assigned_to_path(), ?RESELLER_ACCOUNT_ID}
-          ,{kzd_phone_numbers:pvt_reserve_history_path(), [?RESELLER_ACCOUNT_ID]}
-          ,{kzd_phone_numbers:pvt_module_name_path(), <<"knm_bandwidth2">>}
-          ,{kzd_phone_numbers:pvt_state_path(), ?NUMBER_STATE_PORT_IN}
-          ,{kzd_phone_numbers:pvt_db_name_path(), <<"numbers%2F%2B1425">>}
-          ,{kz_doc:path_created(), 63565935000}
-          ])).
+       ,kz_json:expand(
+          kz_json:from_list(
+            [{kz_doc:path_id(), ?TEST_PORT_IN3_NUM}
+            ,{kz_doc:path_revision(), <<"1-adddead523e81a4e3c2689140ed3abeef">>}
+            ,{kz_doc:path_modified(), 63565935527}
+            ,{kzd_phone_numbers:pvt_assigned_to_path(), ?RESELLER_ACCOUNT_ID}
+            ,{kzd_phone_numbers:pvt_reserve_history_path(), [?RESELLER_ACCOUNT_ID]}
+            ,{kzd_phone_numbers:pvt_module_name_path(), <<"knm_bandwidth2">>}
+            ,{kzd_phone_numbers:pvt_state_path(), ?NUMBER_STATE_PORT_IN}
+            ,{kzd_phone_numbers:pvt_db_name_path(), <<"numbers%2F%2B1425">>}
+            ,{kz_doc:path_created(), 63565935000}
+            ]))).
 
 -define(BW_EXISTING_JSON
-       ,kz_json:from_list(
-          [{kz_doc:path_id(), <<"+14122065197">>}
-          ,{kz_doc:path_revision(), <<"4-96e8a3de0419862c3e4a18e3251a6dd7">>}
-          ,{kzd_phone_numbers:pvt_db_name_path(), <<"numbers%2F%2B1412">>}
-          ,{kzd_phone_numbers:pvt_assigned_to_path(), ?RESELLER_ACCOUNT_ID}
-          ,{kzd_phone_numbers:pvt_state_path(), ?NUMBER_STATE_DISCOVERY}
-          ,{kzd_phone_numbers:pvt_reserve_history_path(), []}
-          ,{kzd_phone_numbers:pvt_ported_in_path(), false}
-          ,{kzd_phone_numbers:pvt_module_name_path(), <<"knm_bandwidth2">>}
-          ,{kzd_phone_numbers:pvt_carrier_data_path()
-           ,kz_json:from_list(
-              [{<<"number_id">>, <<"0C107941-CDDA-42FE-823C-042EADBD3719">>}
-              ,{<<"ten_digit">>, <<"4122065197">>}
-              ,{<<"formatted_number">>, <<"1-412-206-5197">>}
-              ,{<<"e164">>, <<"+14122065197">>}
-              ,{<<"npa_nxx">>, <<"412206">>}
-              ,{<<"status">>, <<"Available">>}
-              ,{<<"rate_center">>, kz_json:from_list(
-                                     [{<<"name">>, <<"PITTSBURGH SUBURBAN ZONE 13">>}
-                                     ,{<<"lata">>, <<"234">>}
-                                     ,{<<"state">>, <<"PA">>}
-                                     ])
-               }
-              ])
-           }
-          ,{kz_doc:path_modified(), 63610268576}
-          ,{kz_doc:path_created(), 63610268576}
-          ])).
+       ,kz_json:expand(
+          kz_json:from_list(
+            [{kz_doc:path_id(), <<"+14122065197">>}
+            ,{kz_doc:path_revision(), <<"4-96e8a3de0419862c3e4a18e3251a6dd7">>}
+            ,{kzd_phone_numbers:pvt_db_name_path(), <<"numbers%2F%2B1412">>}
+            ,{kzd_phone_numbers:pvt_assigned_to_path(), ?RESELLER_ACCOUNT_ID}
+            ,{kzd_phone_numbers:pvt_state_path(), ?NUMBER_STATE_DISCOVERY}
+            ,{kzd_phone_numbers:pvt_reserve_history_path(), []}
+            ,{kzd_phone_numbers:pvt_ported_in_path(), false}
+            ,{kzd_phone_numbers:pvt_module_name_path(), <<"knm_bandwidth2">>}
+            ,{kzd_phone_numbers:pvt_carrier_data_path()
+             ,kz_json:from_list(
+                [{<<"number_id">>, <<"0C107941-CDDA-42FE-823C-042EADBD3719">>}
+                ,{<<"ten_digit">>, <<"4122065197">>}
+                ,{<<"formatted_number">>, <<"1-412-206-5197">>}
+                ,{<<"e164">>, <<"+14122065197">>}
+                ,{<<"npa_nxx">>, <<"412206">>}
+                ,{<<"status">>, <<"Available">>}
+                ,{<<"rate_center">>, kz_json:from_list(
+                                       [{<<"name">>, <<"PITTSBURGH SUBURBAN ZONE 13">>}
+                                       ,{<<"lata">>, <<"234">>}
+                                       ,{<<"state">>, <<"PA">>}
+                                       ])
+                 }
+                ])
+             }
+            ,{kz_doc:path_modified(), 63610268576}
+            ,{kz_doc:path_created(), 63610268576}
+            ]))).
 
 -define(AVAILABLE_NON_LOCAL_NUMBER
-       ,kz_json:from_list(
-          [{kz_doc:path_id(), ?TEST_AVAILABLE_NON_LOCAL_NUM}
-          ,{kz_doc:path_revision(), <<"1-3dd6a1523e81a4e3c2689140ed3a8e69">>}
-          ,{kz_doc:path_modified(), 63565900001}
-          ,{kzd_phone_numbers:pvt_assigned_to_path(), undefined}
-          ,{kzd_phone_numbers:pvt_previously_assigned_to_path(), ?RESELLER_ACCOUNT_ID}
-          ,{kzd_phone_numbers:pvt_reserve_history_path(), []}
-          ,{kzd_phone_numbers:pvt_module_name_path(), <<"knm_telnyx">>}
-          ,{kzd_phone_numbers:pvt_state_path(), ?NUMBER_STATE_AVAILABLE}
-          ,{kzd_phone_numbers:pvt_db_name_path(), <<"numbers%2F%2B1916">>}
-          ,{kz_doc:path_created(), 63565900000}
-          ])).
+       ,kz_json:expand(
+          kz_json:from_list(
+            [{kz_doc:path_id(), ?TEST_AVAILABLE_NON_LOCAL_NUM}
+            ,{kz_doc:path_revision(), <<"1-3dd6a1523e81a4e3c2689140ed3a8e69">>}
+            ,{kz_doc:path_modified(), 63565900001}
+            ,{kzd_phone_numbers:pvt_assigned_to_path(), undefined}
+            ,{kzd_phone_numbers:pvt_previously_assigned_to_path(), ?RESELLER_ACCOUNT_ID}
+            ,{kzd_phone_numbers:pvt_reserve_history_path(), []}
+            ,{kzd_phone_numbers:pvt_module_name_path(), <<"knm_telnyx">>}
+            ,{kzd_phone_numbers:pvt_state_path(), ?NUMBER_STATE_AVAILABLE}
+            ,{kzd_phone_numbers:pvt_db_name_path(), <<"numbers%2F%2B1916">>}
+            ,{kz_doc:path_created(), 63565900000}
+            ]))).
 
 -define(TEST_NEW_PORT_REQ
-       ,kz_json:from_list(
-          [{kz_doc:path_id(), <<"bd99a9e8c6b16480449d78e1bca6817b">>}
-          ,{kz_doc:path_revision(), <<"6-dead6acb1e87d94408461b6c8e9a99db">>}
-          ,{<<"carrier">>, <<"Unknown Carrier">>}
-          ,{<<"numbers">>
-           ,kz_json:from_list(
-              [{?TEST_NEW_PORT_NUM, kz_json:from_list([{<<"used_by">>, <<"callflow">>}])}
-              ])
-           }
-          ,{<<"bill">>
-           ,kz_json:from_list(
-              [{<<"name">>, <<"Karl Anderson">>}
-              ,{<<"address">>, <<"140 Geary Street">>}
-              ,{<<"locality">>, <<"San Francisco">>}
-              ,{<<"region">>, <<"CA">>}
-              ,{<<"postal_code">>, <<"94108">>}
-              ])
-           }
-          ,{<<"name">>, <<"Test Port">>}
-          ,{<<"notifications">>
-           ,kz_json:from_list(
-              [{<<"email">>, kz_json:from_list([{<<"send_to">>, <<"lark@1300hz.com">>}])}
-              ])
-           }
-          ,{<<"transfer_date">>, 63655056000}
-          ,{<<"port_state">>, <<"unconfirmed">>}
-          ,{<<"ui_metadata">>
-           ,kz_json:from_list(
-              [{<<"version">>, <<"4.0-20">>}
-              ,{<<"ui">>,<<"monster-ui">>}
-              ,{<<"origin">>,<<"common">>}
-              ])
-           }
-          ,{<<"pvt_port_state">>, <<"submitted">>}
-          ,{kz_doc:path_type(), <<"port_request">>}
-          ,{<<"pvt_tree">>, [?MASTER_ACCOUNT_ID, <<"bbbbbd7435c9d8822406d27e72a1e91d">>]}
-          ,{kz_doc:path_vsn(), <<"1">>}
-          ,{kz_doc:path_account_id(), ?RESELLER_ACCOUNT_ID}
-          ,{kz_doc:path_account_db(), <<"port_requests">>}
-          ,{kz_doc:path_created(), 63654578539}
-          ,{kz_doc:path_modified(), 63654578549}
-          ,{<<"pvt_request_id">>, <<"d19e1a27e72d6042288d9c5347d9e6d4">>}
-          ,{<<"pvt_auth_user_id">>, <<"aaaaad7435c9d8822406d27e72a1e91d">>}
-          ,{<<"pvt_auth_account_id">>, ?MASTER_ACCOUNT_ID}
-          ,{<<"pvt_is_authenticated">>, true}
-          ,{<<"_attachments">>
-           ,kz_json:from_list(
-              [{<<"resporg.pdf">>
-               ,kz_json:from_list(
-                  [{<<"content_type">>, <<"application/pdf">>}
-                  ,{<<"revpos">>, 4}
-                  ,{<<"digest">>, <<"md5-eEYd+NQg/SR6QXReENaxKQ==">>}
-                  ,{<<"length">>, 81352}
-                  ,{<<"stub">>, true}
-                  ])
-               }
-              ,{<<"loa.pdf">>
-               ,kz_json:from_list(
-                  [{<<"content_type">>, <<"application/pdf">>}
-                  ,{<<"revpos">>, 3}
-                  ,{<<"digest">>, <<"md5-eEYd+NQg/SR6QXReENaxKQ==">>}
-                  ,{<<"length">>, 81352}
-                  ,{<<"stub">>, true}
-                  ])
-               }
-              ,{<<"bill.pdf">>
-               ,kz_json:from_list(
-                  [{<<"content_type">>, <<"application/pdf">>}
-                  ,{<<"revpos">>, 2}
-                  ,{<<"digest">>, <<"md5-eEYd+NQg/SR6QXReENaxKQ==">>}
-                  ,{<<"length">>, 81352}
-                  ,{<<"stub">>, true}
-                  ])
-               }])
-           }])
-       ).
+       ,kz_json:expand(
+          kz_json:from_list(
+            [{kz_doc:path_id(), <<"bd99a9e8c6b16480449d78e1bca6817b">>}
+            ,{kz_doc:path_revision(), <<"6-dead6acb1e87d94408461b6c8e9a99db">>}
+            ,{[<<"carrier">>], <<"Unknown Carrier">>}
+            ,{[<<"numbers">>]
+             ,kz_json:from_list(
+                [{?TEST_NEW_PORT_NUM, kz_json:from_list([{<<"used_by">>, <<"callflow">>}])}
+                ])
+             }
+            ,{[<<"bill">>]
+             ,kz_json:from_list(
+                [{<<"name">>, <<"Karl Anderson">>}
+                ,{<<"address">>, <<"140 Geary Street">>}
+                ,{<<"locality">>, <<"San Francisco">>}
+                ,{<<"region">>, <<"CA">>}
+                ,{<<"postal_code">>, <<"94108">>}
+                ])
+             }
+            ,{[<<"name">>], <<"Test Port">>}
+            ,{[<<"notifications">>]
+             ,kz_json:from_list(
+                [{<<"email">>, kz_json:from_list([{<<"send_to">>, <<"lark@1300hz.com">>}])}
+                ])
+             }
+            ,{[<<"transfer_date">>], 63655056000}
+            ,{[<<"port_state">>], <<"unconfirmed">>}
+            ,{[<<"ui_metadata">>]
+             ,kz_json:from_list(
+                [{<<"version">>, <<"4.0-20">>}
+                ,{<<"ui">>,<<"monster-ui">>}
+                ,{<<"origin">>,<<"common">>}
+                ])
+             }
+            ,{[<<"pvt_port_state">>], <<"submitted">>}
+            ,{kz_doc:path_type(), <<"port_request">>}
+            ,{[<<"pvt_tree">>], [?MASTER_ACCOUNT_ID, <<"bbbbbd7435c9d8822406d27e72a1e91d">>]}
+            ,{kz_doc:path_vsn(), <<"1">>}
+            ,{kz_doc:path_account_id(), ?RESELLER_ACCOUNT_ID}
+            ,{kz_doc:path_account_db(), <<"port_requests">>}
+            ,{kz_doc:path_created(), 63654578539}
+            ,{kz_doc:path_modified(), 63654578549}
+            ,{[<<"pvt_request_id">>], <<"d19e1a27e72d6042288d9c5347d9e6d4">>}
+            ,{[<<"pvt_auth_user_id">>], <<"aaaaad7435c9d8822406d27e72a1e91d">>}
+            ,{[<<"pvt_auth_account_id">>], ?MASTER_ACCOUNT_ID}
+            ,{[<<"pvt_is_authenticated">>], true}
+            ,{[<<"_attachments">>]
+             ,kz_json:from_list(
+                [{<<"resporg.pdf">>
+                 ,kz_json:from_list(
+                    [{<<"content_type">>, <<"application/pdf">>}
+                    ,{<<"revpos">>, 4}
+                    ,{<<"digest">>, <<"md5-eEYd+NQg/SR6QXReENaxKQ==">>}
+                    ,{<<"length">>, 81352}
+                    ,{<<"stub">>, true}
+                    ])
+                 }
+                ,{<<"loa.pdf">>
+                 ,kz_json:from_list(
+                    [{<<"content_type">>, <<"application/pdf">>}
+                    ,{<<"revpos">>, 3}
+                    ,{<<"digest">>, <<"md5-eEYd+NQg/SR6QXReENaxKQ==">>}
+                    ,{<<"length">>, 81352}
+                    ,{<<"stub">>, true}
+                    ])
+                 }
+                ,{<<"bill.pdf">>
+                 ,kz_json:from_list(
+                    [{<<"content_type">>, <<"application/pdf">>}
+                    ,{<<"revpos">>, 2}
+                    ,{<<"digest">>, <<"md5-eEYd+NQg/SR6QXReENaxKQ==">>}
+                    ,{<<"length">>, 81352}
+                    ,{<<"stub">>, true}
+                    ])
+                 }])
+             }])
+         )).
 -endif.
 
 -define(KNM_HRL, 'true').
