@@ -10,7 +10,7 @@
         "name": "Citizen",
         "number": "75657869"
     },
-    "pvt_assigned_to": "reseller_account_b113394f16cb76d",
+    "pvt_assigned_to": "account0000000000000000000000002",
     "pvt_created": 63565911001,
     "pvt_db_name": "numbers%2F%2B1812",
     "pvt_features": {
@@ -29,7 +29,7 @@
     "pvt_modified": 63565911000,
     "pvt_module_name": "knm_vitelity",
     "pvt_reserve_history": [
-        "reseller_account_b113394f16cb76d"
+        "account0000000000000000000000002"
     ],
     "pvt_state": "in_service"
 }

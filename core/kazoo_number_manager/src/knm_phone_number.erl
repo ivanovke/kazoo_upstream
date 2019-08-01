@@ -1236,19 +1236,12 @@ set_auth_by(PN, ?MATCH_ACCOUNT_RAW(AuthBy)) ->
 %% @end
 %%------------------------------------------------------------------------------
 -spec is_admin(knm_phone_number() | kz_term:api_ne_binary()) -> boolean().
--ifdef(TEST).
-is_admin(#knm_phone_number{auth_by=AuthBy}) -> is_admin(AuthBy);
-is_admin(?KNM_DEFAULT_AUTH_BY) -> 'true';
-is_admin(?MASTER_ACCOUNT_ID) -> 'true';
-is_admin(_) -> 'false'.
--else.
 is_admin(#knm_phone_number{auth_by=AuthBy}) -> is_admin(AuthBy);
 is_admin(?KNM_DEFAULT_AUTH_BY) ->
     lager:info("bypassing auth"),
     'true';
 is_admin(AuthBy) ->
     kzd_accounts:is_superduper_admin(AuthBy).
--endif.
 
 %%------------------------------------------------------------------------------
 %% @doc
@@ -1561,15 +1554,8 @@ is_admin_or_in_account_hierarchy(AuthBy, AccountId) ->
     end.
 
 -spec is_in_account_hierarchy(kz_term:ne_binary(), kz_term:ne_binary()) -> boolean().
--ifdef(TEST).
-is_in_account_hierarchy(AccountId, AccountId) -> 'true';
-is_in_account_hierarchy(?MASTER_ACCOUNT_ID, ?RESELLER_ACCOUNT_ID) -> 'true';
-is_in_account_hierarchy(?RESELLER_ACCOUNT_ID, ?CHILD_ACCOUNT_ID) -> 'true';
-is_in_account_hierarchy(_, _) -> 'false'.
--else.
 is_in_account_hierarchy(AuthBy, AccountId) ->
     kzd_accounts:is_in_account_hierarchy(AuthBy, AccountId, 'true').
--endif.
 
 -spec is_authorized_collection(knm_numbers:pn_collection()) -> knm_numbers:pn_collection().
 is_authorized_collection(T0=#{todo := PNs}) ->

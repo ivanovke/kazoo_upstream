@@ -92,7 +92,6 @@ e911_test_() ->
     JObj = kz_json:from_list([{?FEATURE_E911, E911}]),
     Options = [{'auth_by', ?MASTER_ACCOUNT_ID}
               ,{'assign_to', ?RESELLER_ACCOUNT_ID}
-              ,{<<"auth_by_account">>, kz_json:new()}
               ,{'public_fields', JObj}
               ],
     {ok, N1} = knm_number:create(?TEST_TELNYX_NUM, Options),
@@ -127,7 +126,6 @@ cnam_test_() ->
     JObj = kz_json:from_list([{?FEATURE_CNAM, CNAM}]),
     Options = [{'auth_by', ?MASTER_ACCOUNT_ID}
               ,{'assign_to', ?RESELLER_ACCOUNT_ID}
-              ,{<<"auth_by_account">>, kz_json:new()}
               ,{'public_fields', JObj}
               ],
     {ok, N1} = knm_number:create(?TEST_TELNYX_NUM, Options),

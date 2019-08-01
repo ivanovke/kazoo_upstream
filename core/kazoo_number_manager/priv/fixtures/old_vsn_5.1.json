@@ -39,7 +39,7 @@
         "status": "PROVISIONED",
         "street_address": "23 N MAIN ST"
     },
-    "pvt_assigned_to": "reseller_account_b113394f16cb76d",
+    "pvt_assigned_to": "account0000000000000000000000002",
     "pvt_authorizing_account": "system",
     "pvt_created": 63606025486,
     "pvt_db_name": "numbers%2F%2B1937",

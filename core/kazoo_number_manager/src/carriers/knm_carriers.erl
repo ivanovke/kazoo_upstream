@@ -30,18 +30,11 @@
         ,is_local/1
         ]).
 
--ifdef(TEST).
--define(CARRIER_MODULES(AccountId)
-       ,(fun (?CHILD_ACCOUNT_ID) ->
-                 %% CHILD_ACCOUNT_ID is not a reseller but that's okay
-                 [?CARRIER_LOCAL, <<"knm_bandwidth2">>];
-             (_) -> ?CARRIER_MODULES
-         end)(AccountId)).
--else.
+%% CHILD_ACCOUNT_ID is not a reseller but that's okay:
+%% [?CARRIER_LOCAL, <<"knm_bandwidth2">>]
 -define(CARRIER_MODULES(AccountId)
        ,kapps_account_config:get_ne_binaries(AccountId, ?KNM_CONFIG_CAT, <<"carrier_modules">>, ?CARRIER_MODULES)
        ).
--endif.
 
 -define(CARRIER_MODULES
        ,kapps_config:get_ne_binaries(?KNM_CONFIG_CAT, <<"carrier_modules">>, ?DEFAULT_CARRIER_MODULES)
@@ -181,7 +174,7 @@ info(AuthAccountId, AccountId, ResellerId) ->
     Map = lists:foldl(fun info_fold/2, Acc0, AvailableCarriers),
     kz_json:from_map(
       Map#{?CARRIER_INFO_USABLE_CARRIERS => usable_carriers()
-          ,?CARRIER_INFO_USABLE_CREATION_STATES => allowed_creation_states(AuthAccountId)
+          ,?CARRIER_INFO_USABLE_CREATION_STATES => knm_number:allowed_creation_states(AuthAccountId)
           }
      ).
 
@@ -205,19 +198,6 @@ usable_carriers() ->
                                ,?CARRIER_RESERVED_RESELLER
                                ],
     [CarrierName || <<"knm_",CarrierName/binary>> <- Modules].
-
--spec allowed_creation_states(kz_term:api_ne_binary()) -> kz_term:ne_binaries().
--ifdef(TEST).
-allowed_creation_states(AccountId=?RESELLER_ACCOUNT_ID) ->
-    AccountJObj = kzd_accounts:set_allow_number_additions(?RESELLER_ACCOUNT_DOC, true),
-    Options = [{<<"auth_by_account">>, AccountJObj}],
-    knm_number:allowed_creation_states(Options, AccountId);
-allowed_creation_states(AccountId) ->
-    knm_number:allowed_creation_states(AccountId).
--else.
-allowed_creation_states(AccountId) ->
-    knm_number:allowed_creation_states(AccountId).
--endif.
 
 %%------------------------------------------------------------------------------
 %% @doc Buy a number from its carrier module

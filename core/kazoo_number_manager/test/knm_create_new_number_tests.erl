@@ -13,9 +13,6 @@ create_new_number_test_() ->
     Props = [{'auth_by', ?MASTER_ACCOUNT_ID}
             ,{'assign_to', ?RESELLER_ACCOUNT_ID}
             ,{'dry_run', 'false'}
-            ,{<<"auth_by_account">>
-             ,kzd_accounts:set_allow_number_additions(?RESELLER_ACCOUNT_DOC, 'true')
-             }
             ],
     {'ok', N} = knm_number:create(?TEST_CREATE_NUM, Props),
     JObj = knm_number:to_public_json(N),
@@ -53,9 +50,6 @@ create_with_carrier_test_() ->
             ,{'assign_to', ?RESELLER_ACCOUNT_ID}
             ,{'dry_run', 'false'}
             ,{'module_name', CarrierModule}
-            ,{<<"auth_by_account">>
-             ,kzd_accounts:set_allow_number_additions(?RESELLER_ACCOUNT_DOC, 'true')
-             }
             ],
     {'ok', N} = knm_number:create(?TEST_CREATE_NUM, Props),
     JObj = knm_number:to_public_json(N),
@@ -94,9 +88,6 @@ reseller_new_number_test_() ->
     Props = [{'auth_by', ?RESELLER_ACCOUNT_ID}
             ,{'assign_to', ?RESELLER_ACCOUNT_ID}
             ,{'dry_run', 'false'}
-            ,{<<"auth_by_account">>
-             ,kzd_accounts:set_allow_number_additions(?RESELLER_ACCOUNT_DOC, 'true')
-             }
             ],
     {'ok', N} = knm_number:create(?TEST_CREATE_NUM, Props),
     PN = knm_number:phone_number(N),
@@ -143,9 +134,6 @@ create_new_available_number_test_() ->
             ,{'assign_to', ?MASTER_ACCOUNT_ID}
             ,{'dry_run', 'false'}
             ,{state, ?NUMBER_STATE_AVAILABLE}
-            ,{<<"auth_by_account">>
-             ,kzd_accounts:set_allow_number_additions(?RESELLER_ACCOUNT_DOC, 'true')
-             }
             ],
     {'ok', N} = knm_number:create(?TEST_CREATE_NUM, Props),
     PN = knm_number:phone_number(N),
@@ -174,7 +162,6 @@ create_existing_number_test_() ->
     Props = [{'auth_by', ?MASTER_ACCOUNT_ID}
             ,{'assign_to', ?RESELLER_ACCOUNT_ID}
             ,{'dry_run', 'false'}
-            ,{<<"auth_by_account">>, kz_json:new()}
             ],
     {'ok', N} = knm_number:create(?TEST_AVAILABLE_NUM, Props),
     PN = knm_number:phone_number(N),
@@ -251,9 +238,6 @@ create_dry_run_test_() ->
     Props = [{'auth_by', ?MASTER_ACCOUNT_ID}
             ,{'assign_to', ?RESELLER_ACCOUNT_ID}
             ,{'dry_run', 'true'}
-            ,{<<"auth_by_account">>
-             ,kzd_accounts:set_allow_number_additions(?RESELLER_ACCOUNT_DOC, 'true')
-             }
             ],
     {'dry_run', Quotes} = knm_number:create(?TEST_CREATE_NUM, Props),
     ?debugFmt("quotes: ~p~n", [Quotes]),
@@ -272,9 +256,6 @@ move_non_existing_mobile_number_test_() ->
             ,{'dry_run', 'false'}
             ,{'public_fields', PublicFields}
             ,{'module_name', ?CARRIER_MDN}
-            ,{<<"auth_by_account">>
-             ,kzd_accounts:set_allow_number_additions(?RESELLER_ACCOUNT_DOC, 'true')
-             }
             ],
     [{"Verify a non existing mdn cannot be moved to in_service"
      ,?_assertEqual({'error', 'not_found'}, knm_number:move(?TEST_CREATE_NUM, ?RESELLER_ACCOUNT_ID, Props))
@@ -295,9 +276,6 @@ create_non_existing_mobile_number_test_() ->
             ,{'public_fields', PublicFields}
             ,{'module_name', ?CARRIER_MDN}
             ,{'mdn_run', 'true'}
-            ,{<<"auth_by_account">>
-             ,kzd_accounts:set_allow_number_additions(?RESELLER_ACCOUNT_DOC, 'true')
-             }
             ],
     {'ok', N} = knm_number:create(?TEST_CREATE_NUM, Props),
     PN = knm_number:phone_number(N),
@@ -438,9 +416,6 @@ create_new_number() ->
     {"Ensure success when auth_by account is allowed to create numbers"
     ,?_assert(knm_number:ensure_can_create(?TEST_CREATE_NUM
                                           ,[{'auth_by', ?RESELLER_ACCOUNT_ID}
-                                           ,{<<"auth_by_account">>
-                                            ,kzd_accounts:set_allow_number_additions(?RESELLER_ACCOUNT_DOC, 'true')
-                                            }
                                            ]
                                           )
              )

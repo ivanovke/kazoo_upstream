@@ -235,7 +235,12 @@ ensure_can_create(Num, Options) ->
 
 -ifdef(TEST).
 -define(LOAD_ACCOUNT(Options, _AccountId)
-       ,{'ok', props:get_value(<<"auth_by_account">>, Options)}
+       ,case props:get_value(<<"auth_by_account">>, Options) of
+            'undefined' -> kzd_accounts:fetch(AccountId);
+            JObj ->
+                {'ok', Fetched} = kzd_accounts:fetch(AccountId),
+                {'ok', kz_json:merge(Fetched, JObj)}
+        end
        ).
 -else.
 -define(LOAD_ACCOUNT(_Options, AccountId)

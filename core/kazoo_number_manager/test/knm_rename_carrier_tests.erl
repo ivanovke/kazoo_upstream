@@ -13,7 +13,6 @@ create_new_number_rename_carrier_test_() ->
     Options = [{'auth_by', ?MASTER_ACCOUNT_ID}
               ,{'assign_to', ?RESELLER_ACCOUNT_ID}
               ,{'dry_run', 'false'}
-              ,{<<"auth_by_account">>, kzd_accounts:set_allow_number_additions(?RESELLER_ACCOUNT_DOC, 'true')}
               ,{'public_fields', kz_json:from_list([{?FEATURE_RENAME_CARRIER, <<"telnyx">>}])}
               ],
     {'ok', N1} = knm_number:create(?TEST_CREATE_NUM, Options),
@@ -38,7 +37,6 @@ create_new_number_rename_carrier_test_() ->
 rename_carrier_test_() ->
     Options = [{auth_by, ?MASTER_ACCOUNT_ID}
               ,{assign_to, ?RESELLER_ACCOUNT_ID}
-              ,{<<"auth_by_account">>, kz_json:new()}
               ],
     {ok, N1} = knm_number:create(?TEST_TELNYX_NUM, Options),
     PN1 = knm_number:phone_number(N1),

@@ -1478,7 +1478,6 @@ get_dids_for_app(AccountDb, <<"trunkstore">>, ViewOptions) ->
 %% @doc
 %% @end
 %%------------------------------------------------------------------------------
--ifndef(TEST).
 -type dids() :: gb_sets:set(kz_term:ne_binary()).
 
 -spec get_DIDs_callflow_set(kz_term:ne_binary(), kz_term:proplist()) -> dids().
@@ -1498,13 +1497,8 @@ get_DIDs_trunkstore_set(AccountDb, ViewOptions) ->
             ?SUP_LOG_DEBUG("failed to get trunkstore DIDs from ~s: ~p", [AccountDb, _R]),
             gb_sets:new()
     end.
--endif.
 
 -spec app_using(kz_term:ne_binary(), kz_term:ne_binary()) -> kz_term:api_ne_binary().
--ifdef(TEST).
-app_using(?TEST_OLD7_NUM, ?CHILD_ACCOUNT_DB) -> <<"trunkstore">>;
-app_using(?NE_BINARY, ?MATCH_ACCOUNT_ENCODED(_)) -> 'undefined'.
--else.
 app_using(Num, AccountDb) ->
     CallflowNums = get_DIDs_callflow_set(AccountDb, [{'key', Num}]),
     TrunkstoreNums = get_DIDs_trunkstore_set(AccountDb, [{'key', Num}]),
@@ -1520,7 +1514,6 @@ app_using(Num, _, CallflowNums, TrunkstoreNums) ->
                 'false' -> 'undefined'
             end
     end.
--endif.
 
 %%%=============================================================================
 %%% Internal functions

@@ -48,7 +48,6 @@ is_force_outbound_test_() ->
 force_outbound_test_() ->
     Options = [{auth_by, ?RESELLER_ACCOUNT_ID}
               ,{assign_to, ?RESELLER_ACCOUNT_ID}
-              ,{<<"auth_by_account">>, kzd_accounts:set_allow_number_additions(?RESELLER_ACCOUNT_DOC, true)}
               ],
     {ok, N1} = knm_number:create(?TEST_TELNYX_NUM, Options),
     #{ok := [N2]} = knm_numbers:update([N1], [{fun knm_phone_number:reset_doc/2, ?J(true)}]),

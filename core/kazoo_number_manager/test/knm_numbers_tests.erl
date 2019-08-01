@@ -67,7 +67,6 @@ create_test_() ->
     JObj = kz_json:from_list([{?FEATURE_E911, E911}]),
     Options = [{'auth_by', ?MASTER_ACCOUNT_ID}
               ,{'assign_to', ?RESELLER_ACCOUNT_ID}
-              ,{<<"auth_by_account">>, kz_json:new()}
               ],
     Ret = knm_numbers:create([Num], [{'public_fields', JObj}|Options]),
     [?_assertEqual(#{}, maps:get(ko, Ret))
@@ -90,7 +89,6 @@ create_new_test_() ->
     Num = ?TEST_TELNYX_NUM,
     Options = [{'auth_by', ?MASTER_ACCOUNT_ID}
               ,{'assign_to', ?RESELLER_ACCOUNT_ID}
-              ,{<<"auth_by_account">>, kz_json:new()}
               ],
     Ret = knm_numbers:create([Num, ?NOT_NUM, ?TEST_CREATE_NUM], Options),
     [?_assertEqual(#{?NOT_NUM => 'not_reconcilable'}, maps:get(ko, Ret))

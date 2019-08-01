@@ -13,9 +13,6 @@
 base() ->
     [{assign_to, ?RESELLER_ACCOUNT_ID}
     ,{dry_run, false}
-    ,{<<"auth_by_account">>
-     ,kzd_accounts:set_allow_number_additions(?RESELLER_ACCOUNT_DOC, false)
-     }
     ].
 
 transition_port_from_port_in_test_() ->
