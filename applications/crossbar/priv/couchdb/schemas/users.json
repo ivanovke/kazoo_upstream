@@ -21,6 +21,11 @@
                     "description": "Enable the call-forwarding parameters if the device is offline",
                     "type": "boolean"
                 },
+                "features": {
+                    "default": false,
+                    "description": "The features this user has enabled",
+                    "type": "array"
+                },
                 "ignore_early_media": {
                     "default": true,
                     "description": "The option to determine if early media from the call forwarded number should ignored",
