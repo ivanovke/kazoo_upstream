@@ -35,7 +35,7 @@
             "map": [
                 "function(doc) {",
                 "  if (doc.pvt_type != 'user' || doc.pvt_deleted) return;",
-                "  var features = doc.features;",
+                "  var features = doc.features || [];",
                 "  if (doc.smartpbx)",
                 "    for (var feature in doc.smartpbx)",
                 "      if(doc.smartpbx[feature].enabled) features.push(feature);",
